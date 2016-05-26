@@ -187,8 +187,8 @@ The required arguments are:
                 mapq = mapping quality score<br><br>
   If not using the restriction site file option, frag will be ignored.  If not using mapping quality filter, mapq will be ignored.<br><br>
 &lt;outfile>: Name of outfile, should end with .hic.  This is the file you will
-  load into Juicebox.
-&lt;genomeID>: Must be one of hg18, hg19, hg38, mm9, or mm10. For custom genomes, a chrom.sizes files can be provided.
+  load into Juicebox.<br>
+&lt;genomeID>: Must be one of hg19, hg38, mm9, mm10, dMel, canFam3, Pf3D7, TAIR10, b37, hg18, macMul1, oryCun2, sCerS288c, or sacCer3.  Alternatively, it should be the chrom.sizes file from UCSC, limited to the chromosomes you'd like to visualize.
 
 The optional arguments are:<br>
   -d Only calculate intra chromosome (diagonal) [false]<br>
