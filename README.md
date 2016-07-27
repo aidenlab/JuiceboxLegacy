@@ -130,25 +130,30 @@ Compiling Jars from Source Files
 * Installing Java 1.8 JDK
 
 For Windows/Mac/Linux, the Java 1.8 JDK can be installed from here:
+
 http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+
 (Alternative) For Ubuntu/LinuxMint
+
 http://tecadmin.net/install-oracle-java-8-jdk-8-ubuntu-via-ppa/
 
 * Installing Apache Ant
 Mac
   Ant should be installed on most Macs. To verify installation via the command
   prompt, type
-    ant -version
+    `ant -version`
   If Ant is not on your Mac, install it via homebrew. At the command prompt, type
-    brew update
-    brew install ant
+    `brew update`
+    `brew install ant`
   You may need to install Homebrew (http://brew.sh/) on your machine
   See the following Stackoverflow post for more details:
+
   http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
 
 Windows
   Installing Ant requires some minor changes to your system environment. Follow
   the instructions in this article:
+
   http://www.nczonline.net/blog/2012/04/12/how-to-install-apache-ant-on-windows/
 
 Linux
