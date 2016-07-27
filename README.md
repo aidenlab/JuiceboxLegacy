@@ -5,6 +5,9 @@ Juicebox is visualization software for Hi-C data.  In this distribution, we
 include both the visualization software itself and command line tools for
 creating and analyzing files that can be loaded into Juicebox.
 
+If you use Juicebox in your research, please cite:
+
+Neva C. Durand, James T. Robinson, Muhammad S. Shamim, Ido Machol, Jill P. Mesirov, Eric S. Lander, and Erez Lieberman Aiden. "Juicebox provides a visualization system for Hi-C contact maps with unlimited zoom." Cell Systems 3(1), 2016.
 
 Check out the <a href="http://aidenlab.org/juicebox">Juicebox website</a>
 for more details on how to use Juicebox, as well as following a detailed
@@ -77,6 +80,7 @@ The files included in this distribution are as follows:
 * data (directory containing test data)
 
 Executables for Juicebox can be downloaded from http://aidenlab.org/juicebox
+
 The latest command line tools jar can be downloaded from http://aidenlab.org/commandlinetools
 
 -------------
