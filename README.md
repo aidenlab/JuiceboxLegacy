@@ -76,8 +76,8 @@ The files included in this distribution are as follows:
 * lib (directory containing libraries for compilation)
 * data (directory containing test data)
 
-Executables for Juicebox can be downloaded from aidenlab.org/juicebox
-The latest command line tools jar can be downloaded from aidenlab.org/commandlinetools
+Executables for Juicebox can be downloaded from http://aidenlab.org/juicebox
+The latest command line tools jar can be downloaded from http://aidenlab.org/commandlinetools
 
 -------------
 Documentation
