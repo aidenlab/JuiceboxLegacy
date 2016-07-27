@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,8 @@
 
 package juicebox.data;
 
+import juicebox.HiC;
 import juicebox.windowui.NormalizationType;
-
-//import java.util.Map;
 
 /**
  * @author jrobinso
@@ -41,7 +40,7 @@ public interface ExpectedValueFunction {
 
     NormalizationType getNormalizationType();
 
-    String getUnit();
+    HiC.Unit getUnit();
 
     int getBinSize();
 

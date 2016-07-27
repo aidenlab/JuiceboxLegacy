@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.HiCGlobals;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchorTools;
@@ -34,10 +33,9 @@ import juicebox.track.feature.*;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by muhammadsaadshamim on 9/14/15.
@@ -45,31 +43,26 @@ import java.util.Set;
 public class CompareLists extends JuicerCLT {
 
     public final static String PARENT_ATTRIBUTE = "parent_list";
+    public static final Color AAA = new Color(102, 0, 153);
+    public static final Color BBB = new Color(255, 102, 0);
     /**
      * Arbitrary colors for comparison list
      **/
-    public static Color AB = new Color(34, 139, 34);
-    public static Color AA = new Color(0, 255, 150);
-    public static Color BB = new Color(150, 255, 0);
-    public static Color AAA = new Color(102, 0, 153);
-    public static Color BBB = new Color(255, 102, 0);
+    private static final Color AB = new Color(34, 139, 34);
+    private static final Color AA = new Color(0, 255, 150);
+    private static final Color BB = new Color(150, 255, 0);
     private int threshold = 10000, compareTypeID = 0;
     private String genomeID, inputFileA, inputFileB, outputPath = "comparison_list";
-    private Set<String> givenChromosomes = null;
-
 
     public CompareLists() {
         super("compare [-m threshold] [-c chromosome(s)] <compareType> <genomeID> <list1> <list2> [output_path]");
         HiCGlobals.useCache = false;
     }
 
-
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-        //setUsage("juicebox arrowhead hicFile resolution");
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 5 && args.length != 6) {
-            printUsage();
+            printUsageAndExit();
         }
 
         compareTypeID = Integer.parseInt(args[1]);
@@ -89,11 +82,6 @@ public class CompareLists extends JuicerCLT {
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize >= 0) {
             threshold = specifiedMatrixSize;
-        }
-
-        List<String> potentialChromosomes = juicerParser.getChromosomeOption();
-        if (potentialChromosomes != null) {
-            givenChromosomes = new HashSet<String>(potentialChromosomes);
         }
     }
 
@@ -191,7 +179,7 @@ public class CompareLists extends JuicerCLT {
         finalResults.add(uniqueToA);
         finalResults.add(uniqueToB);
 
-        finalResults.exportFeatureList(outputPath, false, "NA");
+        finalResults.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.NA);
 
         int percentMatch = (int) Math.round(100 * ((double) (sizeB - numUniqueToB)) / ((double) sizeB));
         if (percentMatch > 95) {
@@ -200,6 +188,4 @@ public class CompareLists extends JuicerCLT {
             System.out.println("Test failed - " + percentMatch + "% match with reference list");
         }
     }
-
-
 }

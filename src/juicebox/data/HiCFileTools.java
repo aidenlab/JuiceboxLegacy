@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,15 +41,11 @@ import java.util.regex.Pattern;
  */
 public class HiCFileTools {
 
-    /**
-     * Load chromosomes from given ID or file name.
-     *
-     * @param idOrFile Genome ID or file name where chromosome lengths written
-     * @return Chromosome lengths
-     * @throws java.io.IOException if chromosome length file not found
-     */
-
-    private static final String tempPath = System.getProperty("user.dir");
+    // coalescing some of the magic strings
+    public static final String ALL_CHROMOSOME = "All";
+    public static final String KR = "KR";
+    public static final String VC = "VC";
+    public static final String VC_SQRT = "VC_SQRT";
 
     public static Dataset extractDatasetForCLT(List<String> files, boolean allowPrinting) {
         Dataset dataset = null;
@@ -63,7 +59,7 @@ public class HiCFileTools {
                     reader = new DatasetReaderV2(files.get(0));
                 } else {
                     System.err.println("This version of HIC is no longer supported");
-                    System.exit(-1);
+                    System.exit(32);
                 }
                 dataset = reader.read();
 
@@ -73,7 +69,7 @@ public class HiCFileTools {
                 reader = DatasetReaderFactory.getReader(files);
                 if (reader == null) {
                     System.err.println("Error while reading files");
-                    System.exit(-1);
+                    System.exit(33);
                 } else {
                     dataset = reader.read();
                 }
@@ -81,7 +77,7 @@ public class HiCFileTools {
             HiCGlobals.verifySupportedHiCFileVersion(reader.getVersion());
         } catch (Exception e) {
             System.err.println("Could not read hic file: " + e.getMessage());
-            System.exit(-6);
+            System.exit(34);
             //e.printStackTrace();
         }
         return dataset;
@@ -111,7 +107,7 @@ public class HiCFileTools {
                         is = new FileInputStream(file);
                     } else {
                         System.err.println("Could not find chromosome sizes file for: " + idOrFile);
-                        System.exit(-3);
+                        System.exit(35);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -145,7 +141,87 @@ public class HiCFileTools {
             }
 
             // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
-            chromosomes.set(0, new Chromosome(0, "All", (int) (genomeLength / 1000)));
+            chromosomes.set(0, new Chromosome(0, ALL_CHROMOSOME, (int) (genomeLength / 1000)));
+
+            return chromosomes;
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static boolean isAllChromosome(Chromosome chromosome) {
+        return isAllChromosome(chromosome.getName());
+    }
+
+    public static boolean isAllChromosome(String name) {
+        return name.equalsIgnoreCase(ALL_CHROMOSOME);
+    }
+
+    /**
+     * Load the list of chromosomes based on given genome id or file
+     *
+     * @param idOrFile string
+     * @return list of chromosomes
+     */
+    public static List<Chromosome> loadCentromeres(String idOrFile) {
+
+        InputStream is = null;
+
+        try {
+            // Note: to get this to work, had to edit Intellij settings
+            // so that "?*.sizes" are considered sources to be copied to class path
+            is = ChromosomeSizes.class.getResourceAsStream(idOrFile + ".chrom.sizes");
+
+            if (is == null) {
+                // Not an ID,  see if its a file
+                File file = new File(idOrFile);
+
+                try {
+                    if (file.exists()) {
+                        is = new FileInputStream(file);
+                    } else {
+                        System.err.println("Could not find chromosome sizes file for: " + idOrFile);
+                        System.exit(36);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            List<Chromosome> chromosomes = new ArrayList<Chromosome>();
+            chromosomes.add(0, null);   // Index 0 reserved for "whole genome" pseudo-chromosome
+
+            Pattern pattern = Pattern.compile("\t");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is), HiCGlobals.bufferSize);
+            String nextLine;
+            long genomeLength = 0;
+            int idx = 1;
+
+            try {
+                while ((nextLine = reader.readLine()) != null) {
+                    String[] tokens = pattern.split(nextLine);
+                    if (tokens.length == 2) {
+                        String name = tokens[0];
+                        int length = Integer.parseInt(tokens[1]);
+                        genomeLength += length;
+                        chromosomes.add(idx, new Chromosome(idx, name, length));
+                        idx++;
+                    } else {
+                        System.out.println("Skipping " + nextLine);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Add the "pseudo-chromosome" All, representing the whole genome.  Units are in kilo-bases
+            chromosomes.set(0, new Chromosome(0, ALL_CHROMOSOME, (int) (genomeLength / 1000)));
 
 
             return chromosomes;
@@ -161,17 +237,19 @@ public class HiCFileTools {
     }
 
 
+
+
     /**
      * Given an array of possible resolutions, returns the actual resolutions available in the dataset
      *
-     * @param ds
+     * @param availableZooms
      * @param resolutions
      * @return finalResolutions Set
      */
-    public static List<Integer> filterResolutions(Dataset ds, int[] resolutions) {
+    public static List<Integer> filterResolutions(List<HiCZoom> availableZooms, int[] resolutions) {
 
         TreeSet<Integer> resSet = new TreeSet<Integer>();
-        for (HiCZoom zoom : ds.getBpZooms()) {
+        for (HiCZoom zoom : availableZooms) {
             resSet.add(zoom.getBinSize());
         }
 
@@ -184,8 +262,20 @@ public class HiCFileTools {
     }
 
     private static int closestValue(int val, TreeSet<Integer> valSet) {
-        int floorVal = valSet.floor(val);
-        int ceilVal = valSet.ceiling(val);
+        int floorVal;
+        try {
+            // sometimes no lower value is available and throws NPE
+            floorVal = valSet.floor(val);
+        } catch (Exception e) {
+            return valSet.ceiling(val);
+        }
+        int ceilVal;
+        try {
+            // sometimes no higher value is available and throws NPE
+            ceilVal = valSet.ceiling(val);
+        } catch (Exception e) {
+            return floorVal;
+        }
 
         if (Math.abs(ceilVal - val) < Math.abs(val - floorVal))
             return ceilVal;
@@ -198,13 +288,26 @@ public class HiCFileTools {
      * Set intersection
      * http://stackoverflow.com/questions/7574311/efficiently-compute-intersection-of-two-sets-in-java
      *
-     * @param set1
-     * @param set2
+     * @param collection1
+     * @param collection2
      * @return intersection of set1 and set2
      */
-    public static Set<Chromosome> getSetIntersection(Set<Chromosome> set1, Set<Chromosome> set2) {
+    public static Set<Chromosome> getSetIntersection(Collection<Chromosome> collection1, Collection<Chromosome> collection2) {
+        Set<Chromosome> set1 = new HashSet<Chromosome>(collection1);
+        Set<Chromosome> set2 = new HashSet<Chromosome>(collection2);
+
         boolean set1IsLarger = set1.size() > set2.size();
         Set<Chromosome> cloneSet = new HashSet<Chromosome>(set1IsLarger ? set2 : set1);
+        cloneSet.retainAll(set1IsLarger ? set1 : set2);
+        return cloneSet;
+    }
+
+    public static Set<HiCZoom> getZoomSetIntersection(Collection<HiCZoom> collection1, Collection<HiCZoom> collection2) {
+        Set<HiCZoom> set1 = new HashSet<HiCZoom>(collection1);
+        Set<HiCZoom> set2 = new HashSet<HiCZoom>(collection2);
+
+        boolean set1IsLarger = set1.size() > set2.size();
+        Set<HiCZoom> cloneSet = new HashSet<HiCZoom>(set1IsLarger ? set2 : set1);
         cloneSet.retainAll(set1IsLarger ? set1 : set2);
         return cloneSet;
     }
@@ -249,47 +352,17 @@ public class HiCFileTools {
         return token2.equals(chrName);
     }
 
-    /**
-     * @param fileName
-     * @return
-     */
-    public static PrintWriter openWriter(String fileName) {
+    public static PrintWriter openWriter(File file) {
         try {
-            File file = new File(fileName);
             file.createNewFile();
             file.setWritable(true);
             return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
         } catch (IOException e) {
-            System.out.println("I/O error opening file: " + fileName);
-            System.exit(0);
+            System.out.println("I/O error opening file.");
+            System.exit(37);
         }
         return null;
     }
-
-    public static PrintWriter openWriter(File file) {
-        try {
-            file.createNewFile();
-            return new PrintWriter(new BufferedWriter(new FileWriter(file)), true);
-        } catch (IOException e) {
-            System.out.println("I/O error opening file temp file for AutoSave.");
-            System.exit(0);
-        }
-        return null;
-    }
-
-    public static File openTempFile(String prefix) {
-        //try{
-        //create a temp file
-        String pathName = tempPath + "/" + prefix + ".txt";
-        //File temp = File.createTempFile(prefix, ".tmp");
-        return new File(pathName);
-//        } catch (IOException e) {
-//            System.out.println("I/O error opening file temp file for AutoSave. ");
-//            System.exit(0);
-//        }
-//        return null;
-    }
-
 
     public static RealMatrix extractLocalBoundedRegion(MatrixZoomData zd, int limStart, int limEnd, int n,
                                                        NormalizationType norm) throws IOException {
@@ -322,7 +395,7 @@ public class HiCFileTools {
                 System.err.println("x1 " + binXStart + " x2 " + binXEnd + " y1 " + binYStart + " y2 " + binYEnd + " res " + zd.getBinSize());
                 System.err.println("Map is likely too sparse or a different normalization/resolution should be chosen.");
                 e.printStackTrace();
-                System.exit(-6);
+                System.exit(38);
             }
         }
 
@@ -372,7 +445,7 @@ public class HiCFileTools {
         }
 
         System.out.println("Could not find normalizations");
-        System.exit(-5);
+        System.exit(39);
         return null;
     }
     */
@@ -405,4 +478,18 @@ public class HiCFileTools {
     }
 
 
+    /**
+     * @param directoryPath
+     * @return valid directory for unix/windows or exits with error code
+     */
+    public static File createValidDirectory(String directoryPath) {
+        File outputDirectory = new File(directoryPath);
+        if (!outputDirectory.exists() || !outputDirectory.isDirectory()) {
+            if (!outputDirectory.mkdir()) {
+                System.err.println("Couldn't create output directory " + directoryPath);
+                System.exit(40);
+            }
+        }
+        return outputDirectory;
+    }
 }

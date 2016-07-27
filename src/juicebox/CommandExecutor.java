@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +34,6 @@ import org.broad.igv.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-
-//import java.util.List;
-
 
 class CommandExecutor {
 
@@ -73,11 +70,12 @@ class CommandExecutor {
                         String chrXName = args.get(1);
                         String chrYName = args.get(2);
                         String unitName = args.get(3);
+                        HiC.Unit unit = HiC.valueOfUnit(unitName);
                         int binSize = Integer.parseInt(args.get(4));
                         double xOrigin = Double.parseDouble(args.get(5));
                         double yOrigin = Double.parseDouble(args.get(6));
                         double scaleFactor = Double.parseDouble(args.get(7));
-                        hic.setLocation(chrXName, chrYName, unitName, binSize, xOrigin, yOrigin, scaleFactor,
+                        hic.setLocation(chrXName, chrYName, unit, binSize, xOrigin, yOrigin, scaleFactor,
                                 HiC.ZoomCallType.DIRECT, "Goto Sync", false);
                     } else {
                         result = "Not enough parameters";

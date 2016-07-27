@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ public class SQLDatabase extends JuiceboxCLT {
         } catch (SQLException e) {
             System.err.println("Sql exception: " + e.getMessage());
             e.printStackTrace();
-            System.exit(1);
+            System.exit(61);
         } catch (IOException e) {
             e.printStackTrace();
         }

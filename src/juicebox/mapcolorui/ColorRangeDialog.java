@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -274,7 +274,11 @@ class ColorRangeDialog extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
-                superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
+                if (superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter)) {
+                    // TODO succeeded
+                } else {
+                    // TODO failed
+                }
                 setVisible(false);
             }
         });
@@ -319,7 +323,11 @@ class ColorRangeDialog extends JDialog {
         colorSlider.setMinimum(iMin);
         colorSlider.setMaximum(iMax);
         colorRangePanel.setColorRangeSliderVisible(true, superAdapter);
-        superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter);
+        if (superAdapter.getMainViewPanel().setResolutionSliderVisible(true, superAdapter)) {
+            // TODO succeeded
+        } else {
+            // TODO failed
+        }
         setVisible(false);
     }
 

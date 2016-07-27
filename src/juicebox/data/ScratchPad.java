@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -177,7 +177,7 @@ class ScratchPad {
             StringTokenizer tokenizer = new StringTokenizer(line);
             if (tokenizer.countTokens() != 3) {
                 System.err.println("Corrupt line in file " + file.getName() + ": " + line);
-                System.exit(1);
+                System.exit(60);
             }
             int x = Integer.valueOf(tokenizer.nextToken());
             int y = Integer.valueOf(tokenizer.nextToken());

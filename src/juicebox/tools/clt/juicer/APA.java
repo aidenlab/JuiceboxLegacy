@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package juicebox.tools.clt.juicer;
 
 import com.google.common.primitives.Ints;
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
@@ -45,12 +44,12 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 /**
  * Aggregate Peak Analysis developed by mhuntley
- * (AKA PSEA - peak set enrichment analysis)
  * <p/>
  * Implemented in Juicer by mshamim
  * <p/>
@@ -112,56 +111,66 @@ import java.util.*;
  */
 public class APA extends JuicerCLT {
 
-    public static final int regionWidth = 6; //size of boxes
     private final boolean saveAllData = true;
-    private String hicFilePaths, loopListPath, outputFolderPath;
+    private String hicFilePaths, loopListPath;
+    private File outputDirectory;
 
     //defaults
     // TODO right now these units are based on n*res/sqrt(2)
-    // the sqrt(2) scaling should be removed (i.e. handle scaling internally)
+    // TODO the sqrt(2) scaling should be removed (i.e. handle scaling internally)
     private double minPeakDist = 30; // distance between two bins, can be changed in opts
     private double maxPeakDist = Double.POSITIVE_INFINITY;
     private int window = 10;
-    private Set<String> givenChromosomes = null;
-    private int[] resolutions = new int[]{25000, 10000};
+    private int[] resolutions = new int[]{10000, 5000};
+    private int[] regionWidths = new int[]{6, 3};
 
     /**
      * Usage for APA
      */
     public APA() {
         super("apa [-n minval] [-x maxval] [-w window] [-r resolution(s)] [-c chromosomes]" +
-                " [-k NONE/VC/VC_SQRT/KR] <HiC file(s)> <PeaksFile> <SaveFolder>");
+                " [-k NONE/VC/VC_SQRT/KR] [-q corner_width] <hicFile(s)> <PeaksFile> <SaveFolder>");
         HiCGlobals.useCache = false;
     }
 
+    public static String getBasicUsage() {
+        return "apa <hicFile(s)> <PeaksFile> <SaveFolder>";
+    }
+
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
-
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
-
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4) {
-            printUsage();
+            printUsageAndExit();
         }
 
         hicFilePaths = args[1];
         loopListPath = args[2];
-        outputFolderPath = args[3];
+        outputDirectory = HiCFileTools.createValidDirectory(args[3]);
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null)
             norm = preferredNorm;
 
-        minPeakDist = juicerParser.getAPAMinVal();
-        if (minPeakDist <= 0)
-            minPeakDist = 30;
+        double potentialMinPeakDist = juicerParser.getAPAMinVal();
+        if (potentialMinPeakDist >= 0)
+            minPeakDist = potentialMinPeakDist;
 
-        maxPeakDist = juicerParser.getAPAMaxVal();
-        if (maxPeakDist <= 0)
-            maxPeakDist = Double.POSITIVE_INFINITY;
+        double potentialMaxPeakDist = juicerParser.getAPAMaxVal();
+        if (potentialMaxPeakDist > 0)
+            maxPeakDist = potentialMaxPeakDist;
 
-        window = juicerParser.getAPAWindowSizeOption();
-        if (window <= 0)
-            window = 10;
+        int potentialWindow = juicerParser.getAPAWindowSizeOption();
+        if (potentialWindow > 0)
+            window = potentialWindow;
+
+        List<String> possibleRegionWidths = juicerParser.getAPACornerRegionDimensionOptions();
+        if (possibleRegionWidths != null) {
+            List<Integer> widths = new ArrayList<Integer>();
+            for (String res : possibleRegionWidths) {
+                widths.add(Integer.parseInt(res));
+            }
+            regionWidths = Ints.toArray(widths);
+        }
 
         List<String> possibleResolutions = juicerParser.getMultipleResolutionOptions();
         if (possibleResolutions != null) {
@@ -170,11 +179,6 @@ public class APA extends JuicerCLT {
                 intResolutions.add(Integer.parseInt(res));
             }
             resolutions = Ints.toArray(intResolutions);
-        }
-
-        List<String> possibleChromosomes = juicerParser.getChromosomeOption();
-        if (possibleResolutions != null && possibleChromosomes.size() > 0) {
-            givenChromosomes = new HashSet<String>(possibleChromosomes);
         }
     }
 
@@ -190,7 +194,21 @@ public class APA extends JuicerCLT {
             gwPeakNumbers[i] = 0;
 
         Dataset ds = HiCFileTools.extractDatasetForCLT(summedHiCFiles, true);
-        for (final int resolution : HiCFileTools.filterResolutions(ds, resolutions)) {
+        for (final int resolution : HiCFileTools.filterResolutions(ds.getBpZooms(), resolutions)) {
+
+            // determine the region width corresponding to the resolution
+            int currentRegionWidth = resolution == 5000 ? 3 : 6;
+            try {
+                if (regionWidths != null && regionWidths.length > 0) {
+                    for (int i = 0; i < resolutions.length; i++) {
+                        if (resolutions[i] == resolution) {
+                            currentRegionWidth = regionWidths[i];
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                currentRegionWidth = resolution == 5000 ? 3 : 6;
+            }
 
             System.out.println("Processing APA for resolution " + resolution);
             HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
@@ -227,8 +245,7 @@ public class APA extends JuicerCLT {
                 int currentProgressStatus = 0;
 
                 for (Chromosome chr : chromosomes) {
-                    APADataStack apaDataStack = new APADataStack(L, outputFolderPath,
-                            (hicFilePaths + "_" + resolution).replace("/", "_"));
+                    APADataStack apaDataStack = new APADataStack(L, outputDirectory, "" + resolution);
 
                     if (chr.getName().equals(Globals.CHR_ALL)) continue;
 
@@ -261,8 +278,7 @@ public class APA extends JuicerCLT {
 
                     for (Feature2D loop : loops) {
                         try {
-                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window,
-                                    norm));
+                            apaDataStack.addData(APAUtils.extractLocalizedData(zd, loop, L, resolution, window, norm));
                         } catch (IOException e) {
                             System.err.println("Unable to find data for loop: " + loop);
                         }
@@ -270,17 +286,17 @@ public class APA extends JuicerCLT {
 
                     apaDataStack.updateGenomeWideData();
                     if (saveAllData) {
-                        apaDataStack.exportDataSet(chr.getName(), peakNumbers);
+                        apaDataStack.exportDataSet(chr.getName(), peakNumbers, currentRegionWidth);
                     }
 
                     System.out.print(((int) Math.floor((100.0 * ++currentProgressStatus) / maxProgressStatus)) + "% ");
                 }
                 System.out.println("Exporting APA results...");
-                APADataStack.exportGenomeWideData(gwPeakNumbers);
+                APADataStack.exportGenomeWideData(gwPeakNumbers, currentRegionWidth);
                 APADataStack.clearAllData();
             } else {
                 System.err.println("Loop list is empty or incorrect path provided.");
-                System.exit(-8);
+                System.exit(3);
             }
         }
         System.out.println("APA complete");

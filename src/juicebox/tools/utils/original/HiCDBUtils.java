@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.tools.utils.original;
 
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import org.broad.igv.Globals;
 import org.broad.igv.util.ParsingUtils;
@@ -50,7 +51,7 @@ public class HiCDBUtils {
     public static void main(String[] args) throws IOException, SQLException {
 
         String cmd = args[0];
-        if (cmd.equals("frag")) {
+        if (HiC.valueOfUnit(cmd) == HiC.Unit.FRAG) {
             String f = args[1];
             insertFragments(f);
 
@@ -63,6 +64,7 @@ public class HiCDBUtils {
             updateFragmentAnnotations();
 
         } else {
+            // TODO ?
             throw new IOException("Command not clear");
         }
     }

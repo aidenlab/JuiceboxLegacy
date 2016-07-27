@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package juicebox.tools.utils.juicer.apa;
 
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.tools.utils.common.MatrixTools;
 import org.apache.commons.math.linear.RealMatrix;
 
@@ -41,10 +42,10 @@ public class APADataStack {
 
     // genome wide variables
     private static boolean genomeWideVariablesNotSet = true;
-    private static RealMatrix gwPsea;
-    private static RealMatrix gwNormedPsea;
-    private static RealMatrix gwCenterNormedPsea;
-    private static RealMatrix gwRankPsea;
+    private static RealMatrix gwAPAMatrix;
+    private static RealMatrix gwNormedAPAMatrix;
+    private static RealMatrix gwCenterNormedAPAMatrix;
+    private static RealMatrix gwRankAPAMatrix;
     private static List<Double> gwEnhancement;
 
     // saving data variables
@@ -53,150 +54,146 @@ public class APADataStack {
 
     // chr variables
     private final List<Double> enhancement;
-    private RealMatrix psea;
-    private RealMatrix normedPsea;
-    private RealMatrix centerNormedPsea;
-    private RealMatrix rankPsea;
+    private RealMatrix APAMatrix;
+    private RealMatrix normedAPAMatrix;
+    private RealMatrix centerNormedAPAMatrix;
+    private RealMatrix rankAPAMatrix;
 
     /**
      * class for saving data from chromosme wide run of APA, keeps static class to store genomide data
      *
      * @param n                width of matrix
-     * @param outputFolderPath location for saving data
+     * @param outputFolder location for saving data
      * @param customPrefix     optional file/folder prefix
      */
-    public APADataStack(int n, String outputFolderPath, String customPrefix) {
-        psea = MatrixTools.cleanArray2DMatrix(n, n);
-        normedPsea = MatrixTools.cleanArray2DMatrix(n, n);
-        centerNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
-        rankPsea = MatrixTools.cleanArray2DMatrix(n, n);
+    public APADataStack(int n, File outputFolder, String customPrefix) {
+        APAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
+        normedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
+        centerNormedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
+        rankAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
         enhancement = new ArrayList<Double>();
 
         initializeGenomeWideVariables(n);
-        initializeDataSaveFolder(outputFolderPath, customPrefix);
+        initializeDataSaveFolder(outputFolder, customPrefix);
         axesRange = new int[]{-n / 2, 1, -n / 2, 1};
     }
 
     /**
      * Ensure that directory for saving exists
      *
-     * @param path   to directory
+     * @param outputFolderDirectory   to directory
      * @param prefix of files to be saved
      */
-    private static void initializeDataSaveFolder(String path, String prefix) {
-        File newDirectory = safeFolderCreation(path);
-        if (prefix.length() < 1) {// no preference specied
-            dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" +
+    private static void initializeDataSaveFolder(File outputFolderDirectory, String prefix) {
+        if (prefix.length() < 1) {// no preference specified
+            dataDirectory = new File(outputFolderDirectory,
                     new SimpleDateFormat("yyyy.MM.dd.HH.mm").format(new Date()));
         } else {
-            dataDirectory = safeFolderCreation(newDirectory.getAbsolutePath() + "/" + prefix);
+            dataDirectory = new File(outputFolderDirectory, prefix);
         }
-    }
-
-
-    private static File safeFolderCreation(String path) {
-        File newFolder = new File(path);
-        if (!newFolder.exists()) {
-            boolean result = newFolder.mkdir();
-            if (!result) {
-                System.err.println("Error creating directory (data not saved): " + newFolder);
-                return null;
-            }
-        }
-        return newFolder;
+        dataDirectory = HiCFileTools.createValidDirectory(dataDirectory.getAbsolutePath());
     }
 
     private static void initializeGenomeWideVariables(int n) {
         if (genomeWideVariablesNotSet) {
-            gwPsea = MatrixTools.cleanArray2DMatrix(n, n);
-            gwNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
-            gwCenterNormedPsea = MatrixTools.cleanArray2DMatrix(n, n);
-            gwRankPsea = MatrixTools.cleanArray2DMatrix(n, n);
+            gwAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
+            gwNormedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
+            gwCenterNormedAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
+            gwRankAPAMatrix = MatrixTools.cleanArray2DMatrix(n, n);
             //gwCoverage = APAUtils.cleanArray2DMatrix(n, n);
             gwEnhancement = new ArrayList<Double>();
             genomeWideVariablesNotSet = false;
         }
     }
 
-    public static void exportGenomeWideData(Integer[] peakNumbers) {
+    public static void exportGenomeWideData(Integer[] peakNumbers, int currentRegionWidth) {
         double gwNPeaksUsedInv = 1. / peakNumbers[0];
-        gwNormedPsea = gwNormedPsea.scalarMultiply(gwNPeaksUsedInv);
-        gwCenterNormedPsea = gwCenterNormedPsea.scalarMultiply(gwNPeaksUsedInv);
-        gwRankPsea = gwRankPsea.scalarMultiply(gwNPeaksUsedInv);
+        gwNormedAPAMatrix = gwNormedAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
+        gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
+        gwRankAPAMatrix = gwRankAPAMatrix.scalarMultiply(gwNPeaksUsedInv);
 
-        RealMatrix[] matrices = {gwPsea, gwNormedPsea, gwCenterNormedPsea, gwRankPsea};
-        String[] titles = {"psea", "normedPsea", "centerNormedPsea", "rankPsea", "enhancement", "measures"};
+        RealMatrix[] matrices = {gwAPAMatrix, gwNormedAPAMatrix, gwCenterNormedAPAMatrix, gwRankAPAMatrix};
+        String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA", "enhancement", "measures"};
 
-        saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers);
+        saveDataSet("gw", matrices, titles, gwEnhancement, peakNumbers, currentRegionWidth);
     }
 
     private static void saveDataSet(String prefix,
                                     RealMatrix[] apaMatrices,
                                     String[] apaDataTitles,
                                     List<Double> givenEnhancement,
-                                    Integer[] peakNumbers) {
+                                    Integer[] peakNumbers, int currentRegionWidth) {
 
-        File subFolder = safeFolderCreation(dataDirectory.getAbsolutePath() + "/" + prefix);
+        File subFolder = HiCFileTools.createValidDirectory(new File(dataDirectory, prefix).getAbsolutePath());
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Saving chr " + prefix + " data to " + subFolder);
         }
-        String dataPath = subFolder + "/";
 
         for (int i = 0; i < apaMatrices.length; i++) {
 
             String title = "N=" + peakNumbers[0] + " (filtered) " + peakNumbers[1] + " (unique) " +
                     peakNumbers[2] + " (total)";
+            APARegionStatistics apaStats = new APARegionStatistics(apaMatrices[i], currentRegionWidth);
+            int dimension = apaMatrices[i].getColumnDimension();
+            int midPoint = dimension / 2;
+            double centralVal = apaMatrices[i].getEntry(midPoint, midPoint);
+            double colorMax = 5 * centralVal / apaStats.getPeak2UR();
+            double colorMin = 0;
             APAPlotter.plot(apaMatrices[i],
                     axesRange,
-                    new File(dataPath + apaDataTitles[i] + ".png"),
-                    title);
-            MatrixTools.saveMatrixText(dataPath + apaDataTitles[i] + ".txt", apaMatrices[i]);
+                    new File(subFolder, apaDataTitles[i] + ".png"),
+                    title, currentRegionWidth, apaDataTitles[i].equals("APA"), colorMin, colorMax);
+            MatrixTools.saveMatrixText((new File(subFolder, apaDataTitles[i] + ".txt")).getAbsolutePath(),
+                    apaMatrices[i]);
         }
 
-        APAUtils.saveListText(dataPath + apaDataTitles[4] + ".txt", givenEnhancement);
-        APAUtils.saveMeasures(dataPath + apaDataTitles[5] + ".txt", apaMatrices[0]);
+        APAUtils.saveListText((new File(subFolder, apaDataTitles[4] + ".txt")).getAbsolutePath(),
+                givenEnhancement);
+        APAUtils.saveMeasures((new File(subFolder, apaDataTitles[5] + ".txt")).getAbsolutePath(),
+                apaMatrices[0], currentRegionWidth);
     }
 
     public static void clearAllData() {
         axesRange = null;
         dataDirectory = null;
         genomeWideVariablesNotSet = true;
-        gwPsea = null;
-        gwNormedPsea = null;
-        gwCenterNormedPsea = null;
-        gwRankPsea = null;
+        gwAPAMatrix = null;
+        gwNormedAPAMatrix = null;
+        gwCenterNormedAPAMatrix = null;
+        gwRankAPAMatrix = null;
         gwEnhancement = null;
     }
 
     public void addData(RealMatrix newData) {
-        psea = psea.add(newData);
-        normedPsea = normedPsea.add(APAUtils.standardNormalization(newData));
-        centerNormedPsea = centerNormedPsea.add(APAUtils.centerNormalization(newData));
-        rankPsea = rankPsea.add(APAUtils.rankPercentile(newData));
-        enhancement.add(APAUtils.peakEnhancement(newData));
+        RealMatrix nanFilteredData = MatrixTools.cleanUpNaNs(newData);
+        APAMatrix = APAMatrix.add(nanFilteredData);
+        normedAPAMatrix = normedAPAMatrix.add(APAUtils.standardNormalization(nanFilteredData));
+        centerNormedAPAMatrix = centerNormedAPAMatrix.add(APAUtils.centerNormalization(nanFilteredData));
+        rankAPAMatrix = rankAPAMatrix.add(APAUtils.rankPercentile(nanFilteredData));
+        enhancement.add(APAUtils.peakEnhancement(nanFilteredData));
     }
 
     public void updateGenomeWideData() {
-        gwPsea = gwPsea.add(psea);
-        gwNormedPsea = gwNormedPsea.add(normedPsea);
-        gwCenterNormedPsea = gwCenterNormedPsea.add(centerNormedPsea);
-        gwRankPsea = gwRankPsea.add(rankPsea);
+        gwAPAMatrix = gwAPAMatrix.add(APAMatrix);
+        gwNormedAPAMatrix = gwNormedAPAMatrix.add(normedAPAMatrix);
+        gwCenterNormedAPAMatrix = gwCenterNormedAPAMatrix.add(centerNormedAPAMatrix);
+        gwRankAPAMatrix = gwRankAPAMatrix.add(rankAPAMatrix);
         gwEnhancement.addAll(enhancement);
     }
 
-    public void exportDataSet(String subFolderName, Integer[] peakNumbers) {
+    public void exportDataSet(String subFolderName, Integer[] peakNumbers, int currentRegionWidth) {
         double nPeaksUsedInv = 1. / peakNumbers[0];
-        normedPsea = normedPsea.scalarMultiply(nPeaksUsedInv);
-        centerNormedPsea = centerNormedPsea.scalarMultiply(nPeaksUsedInv);
-        rankPsea = rankPsea.scalarMultiply(nPeaksUsedInv);
+        normedAPAMatrix = normedAPAMatrix.scalarMultiply(nPeaksUsedInv);
+        centerNormedAPAMatrix = centerNormedAPAMatrix.scalarMultiply(nPeaksUsedInv);
+        rankAPAMatrix = rankAPAMatrix.scalarMultiply(nPeaksUsedInv);
 
-        RealMatrix[] matrices = {psea, normedPsea, centerNormedPsea, rankPsea};
-        String[] titles = {"psea", "normedPsea", "centerNormedPsea", "rankPsea", "enhancement", "measures"};
+        RealMatrix[] matrices = {APAMatrix, normedAPAMatrix, centerNormedAPAMatrix, rankAPAMatrix};
+        String[] titles = {"APA", "normedAPA", "centerNormedAPA", "rankAPA", "enhancement", "measures"};
 
-        saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers);
+        saveDataSet(subFolderName, matrices, titles, enhancement, peakNumbers, currentRegionWidth);
     }
 
     public void thresholdPlots(int val) {
-        MatrixTools.thresholdValues(psea, val);
+        MatrixTools.thresholdValues(APAMatrix, val);
     }
 }

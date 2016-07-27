@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Created by muhammadsaadshamim on 9/29/15.
  */
-public class UNIXTools {
+class UNIXTools {
     public static String extractElement(String str, int i) {
         String[] strSplit = str.split("\t");
         return strSplit[strSplit.length - i];
@@ -56,16 +56,16 @@ public class UNIXTools {
     }
 
     public static String executeSimpleCommand(String command) {
-        StringBuffer output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
         try {
             Process p = Runtime.getRuntime().exec(command);
             p.waitFor();
             BufferedReader reader =
                     new BufferedReader(new InputStreamReader(p.getInputStream()), HiCGlobals.bufferSize);
 
-            String line = "";
+            String line;
             while ((line = reader.readLine()) != null) {
-                output.append(line + "\n");
+                output.append(line).append("\n");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,8 +73,8 @@ public class UNIXTools {
         return output.toString();
     }
 
-    public static String executeComplexCommand(List<String> command) {
-        StringBuffer output = new StringBuffer();
+    private static String executeComplexCommand(List<String> command) {
+        StringBuilder output = new StringBuilder();
 
         //System.out.println(System.getenv());
 
@@ -95,9 +95,9 @@ public class UNIXTools {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()), HiCGlobals.bufferSize);
 
-            String line = "";
+            String line;
             while ((line = reader.readLine()) != null) {
-                output.append(line + "\n");
+                output.append(line).append("\n");
             }
         } catch (Exception e) {
             e.printStackTrace();

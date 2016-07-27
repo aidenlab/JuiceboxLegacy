@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ public class PreProcessing extends JuiceboxCLT {
     private Preprocessor preprocessor;
 
     public PreProcessing() {
-        super("pre <options> <infile> <outfile> <genomeID>\n"
+        super(getBasicUsage()+"\n"
                 + "           : -d only calculate intra chromosome (diagonal) [false]\n"
                 + "           : -f <restriction site file> calculate fragment map\n"
                 + "           : -m <int> only write cells with count above threshold m [0]\n"
@@ -51,6 +51,10 @@ public class PreProcessing extends JuiceboxCLT {
                 + "           : -c <chromosome ID> only calculate map on specific chromosome\n"
                 + "           : -h print help"
         );
+    }
+
+    public static String getBasicUsage() {
+        return "pre [options] <infile> <outfile> <genomeID>";
     }
 
     @Override
@@ -61,7 +65,7 @@ public class PreProcessing extends JuiceboxCLT {
             genomeId = args[3];
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("No genome ID given");
-            printUsage();
+            printUsageAndExit();
         }
 
         List<Chromosome> chromosomes = HiCFileTools.loadChromosomes(genomeId);
@@ -70,7 +74,7 @@ public class PreProcessing extends JuiceboxCLT {
             if (c != null)
                 genomeLength += c.getLength();
         }
-        chromosomes.set(0, new Chromosome(0, "All", (int) (genomeLength / 1000)));
+        chromosomes.set(0, new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, (int) (genomeLength / 1000)));
 
         inputFile = args[1];
         outputFile = args[2];
@@ -95,7 +99,7 @@ public class PreProcessing extends JuiceboxCLT {
             NormalizationVectorUpdater.updateHicFile(outputFile);
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(1);
+            System.exit(56);
         }
     }
 }

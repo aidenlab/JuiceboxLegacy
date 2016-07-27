@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ package juicebox.windowui;
  * Created by Marie on 6/25/15.
  */
 
+import juicebox.MainWindow;
 import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.Feature2D;
 
@@ -58,8 +59,8 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
     /**
      * Creates the reusable dialog.
      */
-    public EditFeatureAttributesDialog(Feature2D feature, CustomAnnotation customAnnotations) {
-        super();
+    public EditFeatureAttributesDialog(MainWindow mainWindow, Feature2D feature, CustomAnnotation customAnnotations) {
+        super(mainWindow);
 
         this.customAnnotations = customAnnotations;
         this.feature = feature;
@@ -112,7 +113,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
                 options[0]);
 
         //Make this dialog display it.
-        setContentPane(optionPane);
+        setContentPane(new JScrollPane(optionPane));
 
         //Handle window closing correctly.
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -176,6 +177,7 @@ public class EditFeatureAttributesDialog extends JDialog implements ActionListen
                         // New Attribute
                         if (key.equals("New Field Name")) {
                             String newAttributeText = textFields.get("New Field Value").getText();
+                            // TODO meh - if add to all (echo), things after won't work.
 
                             // If added new attribute with valid field
                             if (!typedText.equals(defaultNewAttributeName) && typedText != null) {

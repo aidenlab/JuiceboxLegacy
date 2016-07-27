@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,14 +45,14 @@ public class AddNorm extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox addNorm hicFile <max genome-wide resolution>");
         if (args.length < 2 || args.length > 3) {
-            printUsage();
+            printUsageAndExit();
         }
         file = args[1];
         if (args.length > 2) {
             try {
                 genomeWideResolution = Integer.valueOf(args[2]);
             } catch (NumberFormatException error) {
-                printUsage();
+                printUsageAndExit();
             }
             useGenomeWideResolution = true;
         }

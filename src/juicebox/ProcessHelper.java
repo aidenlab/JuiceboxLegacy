@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,9 @@
 
 package juicebox;
 
-
-
-//import org.apache.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -49,8 +45,7 @@ public class ProcessHelper {
             throws IOException {
 
         ProcessBuilder processBuilder = createProcess();
-        Process process = processBuilder.start();
-        return process;
+        return processBuilder.start();
     }
 
 

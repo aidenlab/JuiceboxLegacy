@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ package juicebox.tools.utils.original;
 
 import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.ContactRecord;
 import juicebox.windowui.NormalizationType;
@@ -92,7 +93,7 @@ public class Preprocessor {
         compressor = new Deflater();
         compressor.setLevel(Deflater.DEFAULT_COMPRESSION);
 
-        this.tmpDir = null;
+        this.tmpDir = null;  // TODO -- specify this
 
     }
 
@@ -125,16 +126,21 @@ public class Preprocessor {
 
         if (!file.exists() || file.length() == 0) {
             System.err.println(inputFile + " does not exist or does not contain any reads.");
-            System.exit(1);
+            System.exit(57);
         }
 
         try {
             String stats = null;
             String graphs = null;
             if (fragmentFileName != null) {
-                fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                try {
+                    fragmentCalculation = FragmentCalculation.readFragments(fragmentFileName);
+                } catch (Exception e) {
+                    System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
+                    fragmentCalculation = null;
+                }
             } else {
-                System.out.println("WARNING: Not including fragment map");
+                System.out.println("Not including fragment map");
             }
             if (statsFileName != null) {
                 FileInputStream is = null;
@@ -201,10 +207,14 @@ public class Preprocessor {
                 }
             }
 
+            try {
+                los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile), HiCGlobals.bufferSize));
+            } catch (Exception e) {
+                System.err.println("Unable to write to " + outputFile);
+                System.exit(70);
+            }
 
             System.out.println("Start preprocess");
-
-            los = new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile), HiCGlobals.bufferSize));
 
             System.out.println("Writing header");
             writeHeader(stats, graphs);
@@ -239,7 +249,7 @@ public class Preprocessor {
 
         // Placeholder for master index position, replaced with actual position after all contents are written
         masterIndexPositionPosition = los.getWrittenCount();
-        los.writeLong(0l);
+        los.writeLong(0L);
 
 
         // Genome ID
@@ -365,7 +375,7 @@ public class Preprocessor {
                     if (writtenMatrices.contains(currentMatrixKey)) {
                         System.err.println("Error: the chromosome combination " + currentMatrixKey + " appears in multiple blocks");
                         if (outputFile != null) outputFile.deleteOnExit();
-                        System.exit(1);
+                        System.exit(58);
                     }
                     currentMatrix = new MatrixPP(currentChr1, currentChr2);
                 }
@@ -516,9 +526,9 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             ev.computeDensity();
 
             int binSize = ev.getGridSize();
-            String unit = ev.isFrag ? "FRAG" : "BP";
+            HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
 
-            buffer.putNullTerminatedString(unit);
+            buffer.putNullTerminatedString(unit.toString());
             buffer.putInt(binSize);
 
             // The density values
@@ -580,7 +590,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
     private void writeZoomHeader(MatrixZoomDataPP zd) throws IOException {
 
         int numberOfBlocks = zd.blockNumbers.size();
-        los.writeString(zd.getUnit());  // Unit, ether "BP" or "FRAG"
+        los.writeString(zd.getUnit().toString());  // Unit
         los.writeInt(zd.getZoom());     // zoom index,  lowest res is zero
         los.writeFloat((float) zd.getSum());      // sum
         los.writeFloat((float) zd.getOccupiedCellCount());
@@ -596,7 +606,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
         // Placeholder for block index
         for (int i = 0; i < numberOfBlocks; i++) {
             los.writeInt(0);
-            los.writeLong(0l);
+            los.writeLong(0L);
             los.writeInt(0);
         }
 
@@ -778,7 +788,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             if (!tmpDir.exists()) {
                 System.err.println("Tmp directory does not exist: " + tmpDirName);
                 if (outputFile != null) outputFile.deleteOnExit();
-                System.exit(1);
+                System.exit(59);
             }
         }
     }
@@ -1180,7 +1190,7 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
          * @param chr2             index of second chromosome
          * @param binSize          size of each grid bin in bp
          * @param blockColumnCount number of block columns
-         * @param zoom             integer zoom (resolution) level index.
+         * @param zoom             integer zoom (resolution) level index.  TODO Is this needed?
          */
         MatrixZoomDataPP(Chromosome chr1, Chromosome chr2, int binSize, int blockColumnCount, int zoom, boolean isFrag) {
 
@@ -1205,8 +1215,8 @@ Long Range (>20Kb): 140,350  (11.35% / 47.73%)
             blocks = new LinkedHashMap<Integer, BlockPP>(blockColumnCount * blockColumnCount);
         }
 
-        String getUnit() {
-            return isFrag ? "FRAG" : "BP";
+        HiC.Unit getUnit() {
+            return isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
         }
 
         double getSum() {

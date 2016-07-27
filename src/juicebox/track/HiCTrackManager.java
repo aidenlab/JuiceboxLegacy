@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.track;
 import juicebox.HiC;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.NormalizationType;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.broad.igv.bbfile.BBFileReader;
 import org.broad.igv.bigwig.BigWigDataSource;
@@ -40,10 +41,7 @@ import org.broad.igv.util.ResourceLocator;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Jim Robinson
@@ -92,13 +90,13 @@ public class HiCTrackManager {
     public void safeTrackLoad(final List<ResourceLocator> locators) {
         Runnable runnable = new Runnable() {
             public void run() {
-                unsafeLoad(locators);
+                unsafeTrackLoad(locators);
             }
         };
         superAdapter.getMainWindow().executeLongRunningTask(runnable, "Safe Track Load");
     }
 
-    private void unsafeLoad(final List<ResourceLocator> locators) {
+    public void unsafeTrackLoad(final List<ResourceLocator> locators) {
         for (ResourceLocator locator : locators) {
             try {
                 loadTrack(locator);
@@ -135,10 +133,7 @@ public class HiCTrackManager {
         String extension = path.substring(index).toLowerCase();
         // The below code is meant to solve problems recognizing the proper file type.  The IGV code looks for
         // the location "type" in order to read the file properly
-        if (!extension.equals(".gz")) {
-            locator.setType(extension);
-
-        } else {
+        if (extension.equals(".gz")) {
             // setting type to be the extension before the .gz
             int index2 = path.substring(0, index).lastIndexOf('.');
             String str = path.substring(0, index).substring(index2);
@@ -146,7 +141,15 @@ public class HiCTrackManager {
             if (!str.equals(".txt")) {
                 locator.setType(str);
             }
-
+        } else {
+            if (extension.equals(".txt") || extension.equals(".zip")) {
+                MessageUtils.showMessage(Level.INFO, ".txt files are not a currently supported 1D track. " +
+                        "If you are trying to use refGene, make sure it is in the .txt.gz format. " +
+                        "If you are trying to load 2D annotations (loops/domains), use \"Add 2D...\"");
+                return;
+            } else {
+                locator.setType(extension);
+            }
         }
 
         if (pathLC.endsWith(".wig") ||
@@ -241,6 +244,22 @@ public class HiCTrackManager {
     }
 
 
+    public void moveTrackUp(HiCTrack track) {
+        int currentIdx = loadedTracks.indexOf(track);
+        if (currentIdx != 0) {
+            Collections.swap(loadedTracks, currentIdx, currentIdx - 1);
+            superAdapter.updateTrackPanel();
+        }
+    }
+
+    public void moveTrackDown(HiCTrack track) {
+        int currentIdx = loadedTracks.indexOf(track);
+        if (currentIdx != loadedTracks.size() - 1) {
+            Collections.swap(loadedTracks, currentIdx, currentIdx + 1);
+            superAdapter.updateTrackPanel();
+        }
+    }
+
     public List<HiCTrack> getLoadedTracks() {
         return loadedTracks;
     }
@@ -249,6 +268,23 @@ public class HiCTrackManager {
         loadedTracks.clear();
         coverageTracks.clear();
     }
+
+    /* TODO @zgire, is this old code that can be deleted?
+
+    public Map<NormalizationType, HiCTrack> getCoverageTracks() {
+        return coverageTracks;
+    }
+
+    public List<HiCTrack> getReloadTracks(List<HiCTrack> reloadTracks) {
+        for (HiCTrack reloadTrack : reloadTracks)
+            reloadTrackNames.add(reloadTrack);
+        return reloadTrackNames;
+    }
+
+    public List<HiCTrack> getReloadTrackNames() {
+        return reloadTrackNames;
+    }
+    */
 
     private Genome loadGenome() {
         String genomePath;
@@ -282,9 +318,7 @@ public class HiCTrackManager {
      * @param newTracks
      */
     private void loadTribbleFile(ResourceLocator locator, List<HiCTrack> newTracks, Genome genome) throws IOException, TribbleIndexNotFoundException {
-
         String typeString = locator.getTypeString();
-
 
         TribbleFeatureSource tribbleFeatureSource = TribbleFeatureSource.getFeatureSource(locator, genome);
         FeatureSource<?> src = GFFFeatureSource.isGFF(locator.getPath()) ?

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -615,6 +615,18 @@ public class ResourceTree {
         treeNode.setAllowsChildren(false);
         leafResources.add(resource);
 
+        label = "Hap1 in situ Hi-C (Sanborn and Rao et al., PNAS, 2015)";
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_peaks.txt");
+        locator.setName(label);
+        locator.setType("loop");
+        resource = new CheckableResource(label, false, locator);
+        treeNode = new DefaultMutableTreeNode(label);
+        loopRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
         //Li et al. ChIA-PET/CTCF K562 loops (Cell, 2012)
         locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/external/ENCODE-5C-GM12878.txt");
         locator.setName("ENCODE 5C GM12878 (Sanyal et al., Nature, 2012)");
@@ -793,6 +805,18 @@ public class ResourceTree {
 
         label = "CH12-LX in situ Hi-C (Rao and Huntley et al., Cell, 2014)";
         locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/ch12-lx-b-lymphoblasts/in-situ/combined_blocks.txt");
+        locator.setName(label);
+        locator.setType("loop");
+        resource = new CheckableResource(label, false, locator);
+        treeNode = new DefaultMutableTreeNode(label);
+        domainRoot.add(treeNode);
+        treeNode.setUserObject(resource);
+        resource.setEnabled(dialogTree.isEnabled());
+        treeNode.setAllowsChildren(false);
+        leafResources.add(resource);
+
+        label = "Hap1 in situ Hi-C (Sanborn and Rao et al., PNAS, 2015)";
+        locator = new ResourceLocator("https://hicfiles.s3.amazonaws.com/hiseq/hap1/in-situ/combined_blocks.txt");
         locator.setName(label);
         locator.setType("loop");
         resource = new CheckableResource(label, false, locator);

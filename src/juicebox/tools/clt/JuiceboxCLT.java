@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,9 +45,10 @@ public abstract class JuiceboxCLT {
         usage = newUsage;
     }
 
-    public void printUsage() {
+    // TODO can request int exitcode as parameter here if desired?
+    public void printUsageAndExit() {
         System.err.println("Usage:   juicebox " + usage);
-        System.exit(-2);
+        System.exit(41);
     }
 }
 

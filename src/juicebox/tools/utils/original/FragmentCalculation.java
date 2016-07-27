@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,9 +73,14 @@ public class FragmentCalculation {
             File file = new File(filename);
             is = new FileInputStream(file);
             return readFragments(is);
+        } catch (Exception e) {
+            System.err.println("Warning: Unable to process fragment file. Pre will continue without fragment file.");
+            return null;
         } finally {
             assert is != null;
-            is.close();
+            if (is != null) {
+                is.close();
+            }
         }
 
     }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -124,7 +124,7 @@ public class DiskResidentBlockMatrix implements BasicMatrix {
 
             int l1 = blockRowIdx * pointsPerBlockRow;
             int l2 = blockColIdx * blockSize * rowDim;
-            long startFilePosition = arrayStartPosition + (l1 + l2) * 4l;
+            long startFilePosition = arrayStartPosition + (l1 + l2) * 4L;
 
 
             int nDataPoints = rowDim * colDim;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,8 @@ class State {
     private static final String TRACKNAMES = "LoadedTrackNames";
     private static final String CONFIGTRACKINFO = "ConfigTrackInfo";
 
-    public static final String[] stateVarNames = new String[]{MAPPATH, MAP, MAPURL,CONTROLURL, XCHR, YCHR, UNIT, BINSIZE,
+    /* TODO implement switch case on enum
+    enum StateVar {}*/
+    public static final String[] stateVarNames = new String[]{MAPPATH, MAP, MAPURL, CONTROLURL, XCHR, YCHR, UNIT, BINSIZE,
             XORIGIN, YORIGIN, SCALE, DISPLAY, NORM, MINCOLOR, LOWCOLOR, UPPERCOLOR, MAXCOLOR, COLORSCALE, TRACKURLS, TRACKNAMES, CONFIGTRACKINFO};
 }

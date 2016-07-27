@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -86,7 +86,7 @@ public class FragmentToBed extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox fragmentToBed <fragmentFile>");
         if (args.length != 2) {
-            printUsage();
+            printUsageAndExit();
         }
         filename = args[1];
     }

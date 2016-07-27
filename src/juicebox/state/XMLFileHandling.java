@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ public class XMLFileHandling {
         String currentTrackName = "";
         String configTrackInfo = "none";
         String controlFiles = SuperAdapter.currentlyLoadedControlFiles;
-        if(controlFiles.length() < 1 || controlFiles.isEmpty()){
+        if (controlFiles == null || controlFiles.length() < 1 || controlFiles.isEmpty()) {
             controlFiles = "null";
         }
 

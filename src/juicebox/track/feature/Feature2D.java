@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,18 +45,18 @@ import java.util.Map;
  */
 public class Feature2D implements Comparable<Feature2D> {
 
-    protected static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
+    static final String genericHeader = "chr1\tx1\tx2\tchr2\ty1\ty2\tcolor";
     private static final String[] categories = new String[]{"observed", "coordinate", "enriched", "expected", "fdr"};
 
     public static int tolerance = 0;
     public static boolean allowHiCCUPSOrdering = false;
-    protected final Map<String, String> attributes;
-    final String chr1;
-    final String chr2;
+    final Map<String, String> attributes;
+    final int start1;
+    final int start2;
+    private final String chr1;
+    private final String chr2;
     private final NumberFormat formatter = NumberFormat.getInstance();
     private final FeatureType featureType;
-    int start1;
-    int start2;
     int end1;
     int end2;
     private Feature2D reflection = null;
@@ -81,7 +81,7 @@ public class Feature2D implements Comparable<Feature2D> {
         return genericHeader;
     }
 
-    public String getFeatureName() {
+    private String getFeatureName() {
         switch (featureType) {
             case PEAK:
                 return "Peak";
@@ -128,6 +128,14 @@ public class Feature2D implements Comparable<Feature2D> {
         this.end2 = end2;
         if (reflection != null)
             reflection.end1 = end2;
+    }
+
+    public int getWidth1() {
+        return end1 - start1;
+    }
+
+    public int getWidth2() {
+        return end2 - start2;
     }
 
     public int getMidPt1() {
@@ -433,6 +441,11 @@ public class Feature2D implements Comparable<Feature2D> {
     public boolean getTest() {
         return test;
     }
+
+    public void clearAttributes() {
+        attributes.clear();
+    }
+
 
     public enum FeatureType {
         NONE, PEAK, DOMAIN, GENERIC

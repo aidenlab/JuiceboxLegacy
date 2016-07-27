@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.data;
 
+import juicebox.HiC;
 import juicebox.windowui.NormalizationType;
 
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class CombinedExpectedValueFunction implements ExpectedValueFunction {
     }
 
     @Override
-    public String getUnit() {
+    public HiC.Unit getUnit() {
         return densityFunctions.get(0).getUnit();
     }
 

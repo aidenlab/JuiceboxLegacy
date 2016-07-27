@@ -7,8 +7,8 @@ to run hiccups. Native libraries are currently only needed for hiccups, though t
 command line tools.
 
 
-    NOTE: by default, this code is built using JCuda 0.7, which is for CUDA 7.
-    We have also included zipped files for JCuda 0.7.5 (for CUDA 7.5) under the
+    NOTE: by default, this code is built using JCuda 0.7.5, which is for CUDA 7.5.
+    We have also included zipped files for JCuda 0.7.0 (for CUDA 7.0) under the
     libs/jcuda folder. When building the appropriate juicebox jar, specify the
     JCuda version in the build.xml file (2 locations) and ensure the the natives
     folder contains the native libraries for the appropriate version.

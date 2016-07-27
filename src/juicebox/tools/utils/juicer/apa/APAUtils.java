@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,11 +46,11 @@ public class APAUtils {
      * @param filename
      * @param matrix
      */
-    public static void saveMeasures(String filename, RealMatrix matrix) {
+    public static void saveMeasures(String filename, RealMatrix matrix, int currentRegionWidth) {
 
         Writer writer = null;
 
-        APARegionStatistics apaStats = new APARegionStatistics(matrix);
+        APARegionStatistics apaStats = new APARegionStatistics(matrix, currentRegionWidth);
 
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "utf-8"));

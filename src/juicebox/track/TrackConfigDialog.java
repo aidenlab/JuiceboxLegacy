@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -132,6 +132,9 @@ class TrackConfigDialog extends JDialog {
                 float newMin = Float.parseFloat(minYField.getText());
                 float newMax = Float.parseFloat(maxYField.getText());
                 DataRange newDataRange = new DataRange(newMin, newMax);
+                if (newMin < 0 && newMax > 0) {
+                    newDataRange = new DataRange(newMin, 0f, newMax);
+                }
                 newDataRange.setType(logScaleCB.isSelected() ? DataRange.Type.LOG : DataRange.Type.LINEAR);
                 ((HiCDataTrack) track).setDataRange(newDataRange);
                 track.setAltColor(altColorChooser.getSelectedColor());
@@ -148,6 +151,30 @@ class TrackConfigDialog extends JDialog {
         canceled = true;
         setVisible(false);
     }
+
+    /* TODO @zgire, is this old code that can be deleted?
+    private Color getReloadColors(String temp) {
+        HashMap<String, Color> reloadColors = new HashMap<String, Color>();
+        for (HiCTrack tracks : trackManager.getReloadTrackNames()) {
+            reloadColors.put(tracks.getName(), tracks.getPosColor());
+        }
+        return reloadColors.get(temp);
+    }
+
+    /*
+    public void setStateForReloadTracks(String currentTrack) {
+
+        for (HiCTrack tracks : trackManager.getReloadTrackNames()) {
+            String trackName = tracks.getName();
+            System.out.println(trackName);
+            if (tracks.getLocator().getPath().contains(currentTrack)) {
+                tracks.setColor(getReloadColors(trackName));
+                System.out.println("match");
+                tracks.setName(trackName);
+            }
+        }
+    }
+    */
 
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents

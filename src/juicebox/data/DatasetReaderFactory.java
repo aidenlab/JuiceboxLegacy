@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,17 +56,17 @@ public class DatasetReaderFactory {
     private static DatasetReaderV2 getReaderForFile(String file) throws IOException {
         String magicString = DatasetReaderV2.getMagicString(file);
 
-        DatasetReaderV2 reader;
-        if (magicString.equals("HIC")) {
-            reader = new DatasetReaderV2(file);
-        } else {
-            System.err.println("This version is deprecated and is no longer supported.");
-            //reader = new DatasetReaderV1(file);
-            // file not actually read, usually canceled the read of password-protected file
-            //if (reader.getVersion() == -1)
-            return null;
+        if(magicString != null) {
+            if (magicString.equals("HIC")) {
+                return new DatasetReaderV2(file);
+            } else {
+                System.err.println("This version is deprecated and is no longer supported.");
+                //reader = new DatasetReaderV1(file);
+                // file not actually read, usually canceled the read of password-protected file
+                //if (reader.getVersion() == -1)
+            }
         }
-        return reader;
+        return null;
     }
 
 }

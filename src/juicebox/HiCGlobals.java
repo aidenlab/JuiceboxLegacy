@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,10 @@
 
 package juicebox;
 
+import juicebox.windowui.MatrixType;
+
 import java.awt.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +38,7 @@ import java.util.List;
 public class HiCGlobals {
 
     // Changes Data Output Mode
-    public static final boolean isRestricted = true;
+    public static final boolean isRestricted = false;
     // Enable black border
     public static final boolean isBlackBorderActivated = false;
     // MainWindow variables
@@ -45,15 +48,15 @@ public class HiCGlobals {
     public static final String topChromosomeColor = "#0000FF";
     public static final String leftChromosomeColor = "#009900";
     public static final Color backgroundColor = new Color(204, 204, 204);
-    public static final String stateFileName = "CurrentJuiceboxStates";
-    public static final String xmlSavedStatesFileName = "JuiceboxStatesForExport.xml";
+    // for state saving
+    public static final File stateFile = new File(DirectoryManager.getHiCDirectory(), "CurrentJuiceboxStates");
+    public static final File xmlSavedStatesFile = new File(DirectoryManager.getHiCDirectory(),
+            "JuiceboxStatesForExport.xml");
     // Feature2D hover text
     public static final boolean allowSpacingBetweenFeatureText = true;
     public static final ArrayList<String> savedStatesList = new ArrayList<String>();
     // min hic file version supported
-    public static final int minVersion = 6;
-    //public static final int bufferSize = 1048576;
-    //public static final int bufferSize = 4194304;
+    public static final int minVersion = 6; // todo redundant calls to this should be removed
     public static final int bufferSize = 2097152;
     // Base-pair resolutions
     public static final int[] bpBinSizes = {2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000};
@@ -61,13 +64,20 @@ public class HiCGlobals {
             "10 KB", "5 KB"};
     // Fragment resolutions
     public static final int[] fragBinSizes = {500, 200, 100, 50, 20, 5, 2, 1};
+    public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
+            MatrixType.OE, MatrixType.PEARSON};
+    // Add MatrixType.DIFF below if you'd like to enable DIFF mode
+    public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
+            MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO};
+    public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
+    public static final int MAX_PEARSON_ZOOM = 500000;
     // Juicebox version (for display purposes only)
-    private static final double versionNum = 1.4;
+    private static final double versionNum = 1.5;
     // Juicebox title
+    // TODO decide on title displayed in Juicebox
     public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
-    //public static final int bufferSize = 102400;
     public static boolean guiIsCurrentlyActive = false;
     public static boolean printVerboseComments = false;
     public static boolean slideshowEnabled = false;
@@ -75,7 +85,7 @@ public class HiCGlobals {
     public static void verifySupportedHiCFileVersion(int version) throws RuntimeException {
         if (version < minVersion) {
             throw new RuntimeException("This file is version " + version +
-                    ". Only versions 5 and greater are supported at this time.");
+                    ". Only versions " + minVersion + " and greater are supported at this time.");
         }
     }
 

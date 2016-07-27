@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ public class NormalizationCalculations {
             int nTokens = tokens.length;
             if (nTokens != 3) {
                 System.err.println("Number of columns incorrect at line" + lineCount + ": " + nextLine);
-                System.exit(-1);
+                System.exit(62);
             }
             int binX = Integer.parseInt(tokens[0]);
             int binY = Integer.parseInt(tokens[1]);
@@ -478,6 +478,7 @@ public class NormalizationCalculations {
      * for minimum memory footprint and good performance for vector multiplication, it is not a general purpose
      * matrix class.   It is not private only so it can be unit tested
      */
+    // TODO - should we make this its own class? able to do Pearson's and gradient?
     static class SparseSymmetricMatrix {
 
         IntArrayList rows1 = null;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,6 +59,7 @@ public class MainWindow extends JFrame {
     private final HiC hic; // The "model" object containing the state for this instance.
 
     private MainWindow() {
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         HiCGlobals.guiIsCurrentlyActive = true;
         hic = new HiC(superAdapter);
         MainMenuBar mainMenuBar = new MainMenuBar();
@@ -179,17 +180,26 @@ public class MainWindow extends JFrame {
      * @return thread
      */
     public Future<?> executeLongRunningTask(final Runnable runnable, final String caller) {
+        return executeLongRunningTask(runnable, caller, "Loading...");
+    }
+
+    public Future<?> executeLongRunningTask(final Runnable runnable, final String caller, final String message) {
         if (HiCGlobals.printVerboseComments) {
             System.out.println("long_execute " + caller);
         }
         Callable<Object> wrapper = new Callable<Object>() {
             public Object call() throws Exception {
-                MainWindow.this.showDisabledGlassPane(caller);
+                MainWindow.this.showDisabledGlassPane(caller, message);
                 try {
                     runnable.run();
                     return "done";
-                } finally {
-                    MainWindow.this.hideDisabledGlassPane();
+                }
+                catch (Exception error) {
+                    error.printStackTrace();
+                    return "error";
+                }
+                finally {
+                    MainWindow.this.hideDisabledGlassPane(caller);
                 }
             }
         };
@@ -197,15 +207,21 @@ public class MainWindow extends JFrame {
         return threadExecutor.submit(wrapper);
     }
 
-    private void showDisabledGlassPane(String caller) {
-        disabledGlassPane.activate("Loading...");
+    private void showDisabledGlassPane(String caller, String displayMessage) {
+        disabledGlassPane.activate(displayMessage);
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Loading " + caller);
+        }
     }
 
     private void initializeGlassPaneListening() {
         rootPane.setGlassPane(disabledGlassPane);
     }
 
-    private void hideDisabledGlassPane() {//getRootPane().getContentPane()
+    private void hideDisabledGlassPane(String caller) {//getRootPane().getContentPane()
+        if (HiCGlobals.printVerboseComments) {
+            System.out.println("Done loading " + caller);
+        }
         disabledGlassPane.deactivate();
     }
 

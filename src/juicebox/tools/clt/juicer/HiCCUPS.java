@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,11 @@ package juicebox.tools.clt.juicer;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
-import jargs.gnu.CmdLineParser;
+import jcuda.runtime.JCuda;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.*;
+import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.tools.utils.common.ArrayTools;
@@ -46,6 +47,7 @@ import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -81,7 +83,7 @@ import java.util.List;
  * <p/>
  * <fdrThresholds>: thresholds used in the HiCCUPS algorithm for the Bottom Left, Donut, Horizontal, and Vertical masks
  * <p/>
- * <enrichedPixelsList>: Final list of all enriched pixesl found by HiCCUPS. Can be visualized directly in Juicebox as
+ * <enrichedPixelsList>: Final list of all enriched pixels found by HiCCUPS. Can be visualized directly in Juicebox as
  * 2D annotations.
  * <p/>
  * <p/>
@@ -154,24 +156,24 @@ public class HiCCUPS extends JuicerCLT {
     public static final Color defaultPeakColor = Color.cyan;
     public static final boolean shouldColorBeScaledByFDR = false;
     private static final int totalMargin = 2 * regionMargin;
-    private static final int w1 = 40;
-    private static final int w2 = 10000;
+    private static final int w1 = 40;      // TODO dimension should be variably set
+    private static final int w2 = 10000;   // TODO dimension should be variably set
+    private static final boolean dataShouldBePostProcessed = true;
+    private static final String MERGED = "merged_loops";
+    private static final String FDR_THRESHOLDS = "fdr_thresholds";
+    private static final String ENRICHED_PIXELS = "enriched_pixels";
+    private static final String REQUESTED_LIST = "requested_list";
     public static double fdrsum = 0.02;
     public static double oeThreshold1 = 1.5;
     public static double oeThreshold2 = 1.75;
     public static double oeThreshold3 = 2;
-    private static boolean dataShouldBePostProcessed = true;
     private static int matrixSize = 512;// 540 original
     private static int regionWidth = matrixSize - totalMargin;
     private boolean configurationsSetByUser = false;
-    private boolean chrSpecified = false;
-    private Set<String> chromosomesSpecified = new HashSet<String>();
-    private String inputHiCFileName;
-    private String outputFDRFileName;
-    private String outputEnrichedFileName;
-    private String outputFinalLoopListFileName;
-    private HiCCUPSConfiguration[] configurations;
-
+    private String featureListPath;
+    private boolean listGiven = false;
+    private boolean checkMapDensityThreshold = true;
+    private List<Chromosome> directlyInitializedCommonChromosomes = null;
 
     /*
      * Reasonable Commands
@@ -190,36 +192,34 @@ public class HiCCUPS extends JuicerCLT {
      * same with published IMR90 looplist
      * published CH12 looplist only generated with 10kb
      */
+    private File outputDirectory;
+    private List<HiCCUPSConfiguration> configurations;
+    private Dataset ds;
 
     public HiCCUPS() {
         super("hiccups [-m matrixSize] [-k normalization (NONE/VC/VC_SQRT/KR)] [-c chromosome(s)] [-r resolution(s)] " +
-                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] " +
-                "<hicFile(s)> <outputLoopsList>" +
-                "\n" +
-                "\n" +
-                "hiccups [-m matrixSize] [-c chromosome(s)] [-r resolution(s)] [-f fdr] [-p peak width] [-i window] " +
-                "<hicFile(s)> <fdrThresholds> <enrichedPixelsList>");
+                "[-f fdr] [-p peak width] [-i window] [-t thresholds] [-d centroid distances] [--ignore_sparsity]" +
+                "<hicFile> <outputDirectory> [specified_loop_list]");
         Feature2D.allowHiCCUPSOrdering = true;
-        // also  hiccups [-r resolution] [-c chromosome] [-m matrixSize] <hicFile> <outputFDRThresholdsFileName>
+    }
+
+    public static String getBasicUsage() {
+        return "hiccups <hicFile> <outputDirectory>";
     }
 
     @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
+        if (args.length != 3 && args.length != 4) {
+            printUsageAndExit();
+        }
+        // TODO: add code here to check for CUDA/GPU installation. The below is not ideal.
 
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(args[1].split("\\+")), true);
+        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         if (args.length == 4) {
-            dataShouldBePostProcessed = false;
-        } else if (args.length != 3) {
-            printUsage();
-        }
-
-        inputHiCFileName = args[1];
-        if (dataShouldBePostProcessed) {
-            outputFinalLoopListFileName = args[2];
-        } else {
-            outputFDRFileName = args[2];
-            outputEnrichedFileName = args[3];
+            listGiven = true;
+            featureListPath = args[3];
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
@@ -227,54 +227,137 @@ public class HiCCUPS extends JuicerCLT {
             norm = preferredNorm;
 
         determineValidMatrixSize(juicerParser);
-        determineValidChromosomes(juicerParser);
-        determineValidConfigurations(juicerParser);
+        determineValidConfigurations(juicerParser, ds.getBpZooms());
+
+        if (juicerParser.getBypassMinimumMapCountCheckOption()) {
+            checkMapDensityThreshold = false;
+        }
     }
 
+    /**
+     * todo needs some more development/expansion
+     */
+    private void testGPUInstallation(){
+        try {
+            jcuda.Pointer pointer = new jcuda.Pointer();
+            JCuda.cudaMalloc(pointer, 4);
+            JCuda.cudaFree(pointer);
+        }
+        catch (Exception e) {
+            System.err.println("GPU/CUDA Installation Not Detected");
+            System.err.println("Exiting HiCCUPS");
+            System.exit(24);
+        }
+    }
+
+    /**
+     * Used by hiccups diff to set the properties of hiccups directly without resorting to command line usage
+     *
+     * @param inputHiCFileName
+     * @param outputDirectoryPath
+     * @param featureListPath
+     * @param preferredNorm
+     * @param matrixSize
+     * @param providedCommonChromosomes
+     * @param configurations
+     * @param thresholds
+     */
+    public void initializeDirectly(String inputHiCFileName, String outputDirectoryPath,
+                                   String featureListPath, NormalizationType preferredNorm, int matrixSize,
+                                   List<Chromosome> providedCommonChromosomes,
+                                   List<HiCCUPSConfiguration> configurations, double[] thresholds) {
+        ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+        outputDirectory = HiCFileTools.createValidDirectory(outputDirectoryPath);
+
+        if (featureListPath != null) {
+            listGiven = true;
+            this.featureListPath = featureListPath;
+        }
+
+        directlyInitializedCommonChromosomes = providedCommonChromosomes;
+
+        if (preferredNorm != null) norm = preferredNorm;
+
+        // will just confirm matrix size is large enough
+        determineValidMatrixSize(matrixSize);
+
+        // configurations should have been passed in
+        if (configurations != null && configurations.size() > 0) {
+            configurationsSetByUser = true;
+            this.configurations = configurations;
+        }
+
+        // fdr & oe thresholds directly sent in
+        if (thresholds != null) setHiCCUPSFDROEThresholds(thresholds);
+
+        // force hiccups to run
+        checkMapDensityThreshold = false;
+    }
 
     @Override
     public void run() {
 
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(inputHiCFileName.split("\\+")), true);
+        try {
+            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+            double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+            // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
+            // then the map had more than 300M contacts.
+            // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+            // todo 300M reads or contacts
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("First expected is " + firstExpected);
+            }
+            if (firstExpected < 100000) {
+                System.err.println("Warning Hi-C map is too sparse to find many loops via HiCCUPS.");
+                if (checkMapDensityThreshold) {
+                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                    System.exit(25);
+                }
+            }
 
-        final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
-        double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
-        // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
-        // then the map had more than 300M contacts.
-        // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-        if (firstExpected < 100000) {
-            System.err.println("HiC contact map is too sparse to run HiCCUPs, exiting.");
-            System.exit(0);
-        }
-
-        // high quality (IMR90, GM12878) maps have different settings
-        if (!configurationsSetByUser) {
-            if (firstExpected > 250000) {
-                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000),
-                        new HiCCUPSConfiguration(5000, 10, 4, 7, 20000)};
-                System.out.println("Default settings for 5kb and 10kb being used");
-            } else {
-                configurations = new HiCCUPSConfiguration[]{new HiCCUPSConfiguration(10000, 10, 2, 5, 20000)};
-                System.out.println("Default settings for 10kb being used");
+            // high quality (e.g. GM12878) maps have different settings
+            if (!configurationsSetByUser) {
+                configurations = new ArrayList<HiCCUPSConfiguration>();
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
+                if (firstExpected < 300000) {
+                    configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
+                    System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
+                } else {
+                    System.out.println("Default settings for 5kb and 10kb being used");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
+            if (!configurationsSetByUser) {
+                configurations = new ArrayList<HiCCUPSConfiguration>();
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor5K());
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor10K());
+                configurations.add(HiCCUPSConfiguration.getDefaultConfigFor25K());
+                System.out.println("Default settings for 5kb, 10kb, and 25kb being used");
             }
         }
 
         List<Chromosome> commonChromosomes = ds.getChromosomes();
-        if (chrSpecified)
-            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(chromosomesSpecified,
+        if (directlyInitializedCommonChromosomes != null && directlyInitializedCommonChromosomes.size() > 0) {
+            commonChromosomes = directlyInitializedCommonChromosomes;
+        } else if (givenChromosomes != null && givenChromosomes.size() > 0) {
+            commonChromosomes = new ArrayList<Chromosome>(HiCFileTools.stringToChromosomes(givenChromosomes,
                     commonChromosomes));
+        }
 
         Map<Integer, Feature2DList> loopLists = new HashMap<Integer, Feature2DList>();
 
-        PrintWriter outputFile = null;
-        if (dataShouldBePostProcessed) {
-            outputFile = HiCFileTools.openWriter(outputFinalLoopListFileName);
+        File outputMergedFile = new File(outputDirectory, MERGED);
+
+        Feature2DHandler inputListFeature2DHandler = new Feature2DHandler();
+        if (listGiven) {
+            inputListFeature2DHandler.loadLoopList(featureListPath, commonChromosomes);
         }
 
-        List<HiCCUPSConfiguration> filteredConfigurations = HiCCUPSConfiguration.filterConfigurations(configurations, ds);
-        for (HiCCUPSConfiguration conf : filteredConfigurations) {
+        for (HiCCUPSConfiguration conf : configurations) {
             System.out.println("Running HiCCUPS for resolution " + conf.getResolution());
-            Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes);
+            Feature2DList enrichedPixels = runHiccupsProcessing(ds, conf, commonChromosomes, inputListFeature2DHandler);
             if (enrichedPixels != null) {
                 loopLists.put(conf.getResolution(), enrichedPixels);
             }
@@ -282,9 +365,10 @@ public class HiCCUPS extends JuicerCLT {
 
         if (dataShouldBePostProcessed) {
             Feature2DList finalList = HiCCUPSUtils.postProcess(loopLists, ds, commonChromosomes,
-                    filteredConfigurations, norm);
-            finalList.exportFeatureList(outputFile, true, "hiccupsFinal");
-            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " + outputFinalLoopListFileName);
+                    configurations, norm, outputDirectory);
+            finalList.exportFeatureList(outputMergedFile, true, Feature2DList.ListFormat.FINAL);
+            System.out.println(finalList.getNumTotalFeatures() + " loops written to file: " +
+                    outputMergedFile.getAbsolutePath());
         }
         System.out.println("HiCCUPS complete");
         // else the thresholds and raw pixels were already saved when hiccups was run
@@ -298,7 +382,7 @@ public class HiCCUPS extends JuicerCLT {
      * @param commonChromosomes list of chromosomes to run hiccups on
      * @return list of enriched pixels
      */
-    private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes) {
+    private Feature2DList runHiccupsProcessing(Dataset ds, HiCCUPSConfiguration conf, List<Chromosome> commonChromosomes, Feature2DHandler inputListFeature2DHandler) {
 
         long begin_time = System.currentTimeMillis();
 
@@ -308,9 +392,9 @@ public class HiCCUPS extends JuicerCLT {
             return null;
         }
 
-        PrintWriter outputFDR = null;
-        if (outputFDRFileName != null)
-            outputFDR = HiCFileTools.openWriter(outputFDRFileName + "_" + conf.getResolution());
+        // open the print writer early so the file I/O capability is verified before running hiccups
+        PrintWriter outputFDR = HiCFileTools.openWriter(
+                new File(outputDirectory, FDR_THRESHOLDS + "_" + conf.getResolution()));
 
         int[][] histBL = new int[w1][w2];
         int[][] histDonut = new int[w1][w2];
@@ -332,13 +416,14 @@ public class HiCCUPS extends JuicerCLT {
         } catch (Exception e) {
             System.err.println("GPU/CUDA Installation Not Detected");
             System.err.println("Exiting HiCCUPS");
-            System.exit(-9);
+            System.exit(26);
         }
 
 
         // to hold all enriched pixels found in second run
         Feature2DList globalList = new Feature2DList();
-
+        Feature2DList requestedList = new Feature2DList();
+        
         // two runs, 1st to build histograms, 2nd to identify loops
 
         // determine which chromosomes will run
@@ -414,6 +499,22 @@ public class HiCCUPS extends JuicerCLT {
                                                     w1, w2, rowBounds[4], columnBounds[4], conf.getResolution());
                                             Feature2DTools.calculateFDR(peaksList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
                                             globalList.add(peaksList);
+
+                                            if (listGiven) {
+                                                float rowBound1GenomeCoords = ((float) rowBounds[4]) * conf.getResolution();
+                                                float columnBound1GenomeCoords = ((float) columnBounds[4]) * conf.getResolution();
+                                                float rowBound2GenomeCoords = ((float) rowBounds[5] - 1) * conf.getResolution();
+                                                float columnBound2GenomeCoords = ((float) columnBounds[5] - 1) * conf.getResolution();
+                                                // System.out.println(chromosome.getIndex() + "\t" + rowBound1GenomeCoords + "\t" + rowBound2GenomeCoords + "\t" + columnBound1GenomeCoords + "\t" + columnBound2GenomeCoords);
+                                                net.sf.jsi.Rectangle currentWindow = new net.sf.jsi.Rectangle(rowBound1GenomeCoords,
+                                                        columnBound1GenomeCoords, rowBound2GenomeCoords, columnBound2GenomeCoords);
+                                                List<Feature2D> inputListFoundFeatures = inputListFeature2DHandler.findContainedFeatures(chromosome.getIndex(), chromosome.getIndex(),
+                                                        currentWindow);
+                                                Feature2DList peaksRequestedList = gpuOutputs.extractPeaksListGiven(chromosome.getIndex(), chromosome.getName(),
+                                                        w1, w2, rowBounds[4], columnBounds[4], conf.getResolution(), inputListFoundFeatures);
+                                                Feature2DTools.calculateFDR(peaksRequestedList, fdrLogBL, fdrLogDonut, fdrLogH, fdrLogV);
+                                                requestedList.add(peaksRequestedList);
+                                            }
                                         }
                                     } catch (IOException e) {
                                         System.err.println("No data in map region");
@@ -463,18 +564,18 @@ public class HiCCUPS extends JuicerCLT {
 
         }
 
-        if (!dataShouldBePostProcessed) {
-            globalList.exportFeatureList(outputEnrichedFileName + "_" + conf.getResolution(), true, "hiccupsEnriched");
-            if (outputFDR != null) {
-                for (int i = 0; i < w1; i++) {
-                    outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] + "\t" + thresholdV[i]);
-                }
-            }
+        globalList.exportFeatureList(new File(outputDirectory, ENRICHED_PIXELS + "_" + conf.getResolution()),
+                true, Feature2DList.ListFormat.ENRICHED);
+        if (listGiven) {
+            requestedList.exportFeatureList(new File(outputDirectory, REQUESTED_LIST + "_" + conf.getResolution()),
+                    true, Feature2DList.ListFormat.ENRICHED);
         }
+        for (int i = 0; i < w1; i++) {
+            outputFDR.println(i + "\t" + thresholdBL[i] + "\t" + thresholdDonut[i] + "\t" + thresholdH[i] +
+                    "\t" + thresholdV[i]);
+        }
+        outputFDR.close();
 
-        if (outputFDR != null) {
-            outputFDR.close();
-        }
 
         if (HiCGlobals.printVerboseComments) {
             long final_time = System.currentTimeMillis();
@@ -498,49 +599,51 @@ public class HiCCUPS extends JuicerCLT {
     }
 
     /**
-     * @param juicerParser
+     * @param juicerParser  Parser to determine configurations
+     * @param availableZooms
      */
-    private void determineValidConfigurations(CommandLineParserForJuicer juicerParser) {
+    private void determineValidConfigurations(CommandLineParserForJuicer juicerParser, List<HiCZoom> availableZooms) {
 
-        try {
-            configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser);
-            configurationsSetByUser = true;
-        } catch (Exception e) {
-            System.err.println("No configurations specified, using default settings");
+        configurations = HiCCUPSConfiguration.extractConfigurationsFromCommandLine(juicerParser, availableZooms);
+        if (configurations == null) {
+            System.out.println("No valid configurations specified, using default settings");
             configurationsSetByUser = false;
+        }
+        else {
+            configurationsSetByUser = true;
         }
 
         try {
             List<String> t = juicerParser.getThresholdOptions();
-            if (t.size() > 1) {
-                double[] thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, -1f);
-                fdrsum = thresholds[0];
-                oeThreshold1 = thresholds[1];
-                oeThreshold2 = thresholds[2];
-                oeThreshold3 = thresholds[3];
-
+            if (t != null && t.size() == 4) {
+                double[] thresholds = HiCCUPSUtils.extractDoubleValues(t, 4, Double.NaN);
+                setHiCCUPSFDROEThresholds(thresholds);
             }
         } catch (Exception e) {
             // do nothing - use default postprocessing thresholds
         }
     }
 
-    private void determineValidChromosomes(CommandLineParserForJuicer juicerParser) {
-        List<String> specifiedChromosomes = juicerParser.getChromosomeOption();
-        if (specifiedChromosomes != null) {
-            chromosomesSpecified = new HashSet<String>(specifiedChromosomes);
-            chrSpecified = true;
-        }
+    private void determineValidMatrixSize(CommandLineParserForJuicer juicerParser) {
+        determineValidMatrixSize(juicerParser.getMatrixSizeOption());
     }
 
-    private void determineValidMatrixSize(CommandLineParserForJuicer juicerParser) {
-        int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
+    private void determineValidMatrixSize(int specifiedMatrixSize) {
         if (specifiedMatrixSize > 2 * regionMargin) {
             matrixSize = specifiedMatrixSize;
             regionWidth = specifiedMatrixSize - totalMargin;
         }
         if (HiCGlobals.printVerboseComments) {
             System.out.println("Using Matrix Size " + matrixSize);
+        }
+    }
+
+    private void setHiCCUPSFDROEThresholds(double[] thresholds) {
+        if (thresholds != null && thresholds.length == 4) {
+            if (!Double.isNaN(thresholds[0]) && thresholds[0] > 0) fdrsum = thresholds[0];
+            if (!Double.isNaN(thresholds[1]) && thresholds[1] > 0) oeThreshold1 = thresholds[1];
+            if (!Double.isNaN(thresholds[2]) && thresholds[2] > 0) oeThreshold2 = thresholds[2];
+            if (!Double.isNaN(thresholds[3]) && thresholds[3] > 0) oeThreshold3 = thresholds[3];
         }
     }
 }

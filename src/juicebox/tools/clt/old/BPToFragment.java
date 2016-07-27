@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ public class BPToFragment extends JuiceboxCLT {
             File dir = new File(outputDir);
             if (!dir.exists() || !dir.isDirectory()) {
                 System.out.println("Output directory does not exist, or is not directory");
-                System.exit(1);
+                System.exit(6);
             }
             reader = new BufferedReader(new FileReader(inputFile), HiCGlobals.bufferSize);
             String nextLine;
@@ -171,7 +171,7 @@ public class BPToFragment extends JuiceboxCLT {
     public void readArguments(String[] args, CmdLineParser parser) {
         //setUsage("juicebox bpToFrag <fragmentFile> <inputBedFile> <outputFile>");
         if (args.length != 4) {
-            printUsage();
+            printUsageAndExit();
         }
 
         fragFile = args[1];
@@ -204,6 +204,10 @@ public class BPToFragment extends JuiceboxCLT {
             this.chr = tokens.get(0);
             this.start = Integer.parseInt(tokens.get(1));
             this.end = Integer.parseInt(tokens.get(2));
+            if (tokens.size() > 3) {
+                this.name = name; // TODO - is this supposed to be this.name = tokens[x]? otherwise a redundant line
+            }
+
         }
 
         public int getStart() {

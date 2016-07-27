@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import com.jidesoft.swing.JideButton;
 import juicebox.Context;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.mapcolorui.JColorRangePanel;
@@ -73,7 +74,16 @@ public class MainViewPanel {
     private static JEditorPane mouseHoverTextPanel;
     private static GoToPanel goPanel;
     private static JPanel hiCPanel;
+    private static HiCChromosomeFigPanel chromosomePanelX;
+    private static HiCChromosomeFigPanel chromosomePanelY;
+    private static JPanel bottomChromosomeFigPanel;
+    private static JPanel chrSidePanel;
+    private static JPanel chrSidePanel3;
     private boolean tooltipAllowedToUpdated = true;
+    private boolean ignoreUpdateThumbnail = false;
+
+
+    public void setIgnoreUpdateThumbnail(boolean flag) {ignoreUpdateThumbnail = flag;}
 
     public JComboBox<Chromosome> getChrBox2() {
         return chrBox2;
@@ -148,7 +158,7 @@ public class MainViewPanel {
 
         //---- chrBox1 ----
         chrBox1 = new JComboBox<Chromosome>();
-        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
+        chrBox1.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, 0)}));
         chrBox1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox1ActionPerformed(e);
@@ -159,7 +169,7 @@ public class MainViewPanel {
 
         //---- chrBox2 ----
         chrBox2 = new JComboBox<Chromosome>();
-        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, "All", 0)}));
+        chrBox2.setModel(new DefaultComboBoxModel<Chromosome>(new Chromosome[]{new Chromosome(0, HiCFileTools.ALL_CHROMOSOME, 0)}));
         chrBox2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 chrBox2ActionPerformed(e);
@@ -279,27 +289,31 @@ public class MainViewPanel {
 
         //---- rulerPanel2 ----
         JPanel topPanel = new JPanel();
-        topPanel.setBackground(Color.green);
+        topPanel.setBackground(Color.white);
         topPanel.setLayout(new BorderLayout());
         hiCPanel.add(topPanel, BorderLayout.NORTH);
         trackLabelPanel = new TrackLabelPanel(superAdapter.getHiC());
         trackLabelPanel.setBackground(Color.white);
         hiCPanel.add(trackLabelPanel, HiCLayout.NORTH_WEST);
 
+        JPanel topCenterPanel = new JPanel();
+        topCenterPanel.setBackground(Color.BLUE);
+        topCenterPanel.setLayout(new BorderLayout());
+        topPanel.add(topCenterPanel, BorderLayout.CENTER);
+
         trackPanelX = new TrackPanel(superAdapter, superAdapter.getHiC(), TrackPanel.Orientation.X);
         trackPanelX.setMaximumSize(new Dimension(4000, 50));
         trackPanelX.setPreferredSize(new Dimension(1, 50));
         trackPanelX.setMinimumSize(new Dimension(1, 50));
         trackPanelX.setVisible(false);
-        topPanel.add(trackPanelX, BorderLayout.NORTH);
+        topCenterPanel.add(trackPanelX, BorderLayout.NORTH);
 
         rulerPanelX = new HiCRulerPanel(superAdapter.getHiC());
         rulerPanelX.setMaximumSize(new Dimension(4000, 50));
         rulerPanelX.setMinimumSize(new Dimension(1, 50));
         rulerPanelX.setPreferredSize(new Dimension(1, 50));
         rulerPanelX.setBorder(null);
-        topPanel.add(rulerPanelX, BorderLayout.SOUTH);
-
+        topCenterPanel.add(rulerPanelX, BorderLayout.SOUTH);
 
         //---- rulerPanel1 ----
         JPanel leftPanel = new JPanel();
@@ -321,6 +335,57 @@ public class MainViewPanel {
         rulerPanelY.setMinimumSize(new Dimension(50, 1));
         leftPanel.add(rulerPanelY, BorderLayout.EAST);
 
+
+        //==== Chromosome Context Toggled ====
+        //---- chromosomeSidePanel ----
+        chrSidePanel = new JPanel();
+        chrSidePanel.setBackground(Color.white);
+        chrSidePanel.setLayout(new BorderLayout());
+        chrSidePanel.setMaximumSize(new Dimension(4000, 50));
+        chrSidePanel.setPreferredSize(new Dimension(50, 50));
+        chrSidePanel.setMinimumSize(new Dimension(50, 50));
+        chrSidePanel.setVisible(true);
+
+        JPanel chrSidePanel2 = new JPanel();
+        chrSidePanel2.setBackground(Color.white);
+        chrSidePanel2.setLayout(new BorderLayout());
+        chrSidePanel2.setMaximumSize(new Dimension(50, 50));
+        chrSidePanel2.setPreferredSize(new Dimension(50, 50));
+        chrSidePanel2.setMinimumSize(new Dimension(50, 50));
+
+        chrSidePanel3 = new JPanel();
+        chrSidePanel3.setBackground(Color.white);
+        chrSidePanel3.setLayout(new BorderLayout());
+        chrSidePanel3.setMaximumSize(new Dimension(50, 4000));
+        chrSidePanel3.setPreferredSize(new Dimension(50, 50));
+        chrSidePanel3.setMinimumSize(new Dimension(50, 50));
+        chrSidePanel3.setVisible(true);
+
+        //---- chromosomeFigPanel2 ----
+        bottomChromosomeFigPanel = new JPanel();
+        bottomChromosomeFigPanel.setBackground(Color.white);
+        bottomChromosomeFigPanel.setLayout(new BorderLayout());
+        //bottomChromosomeFigPanel.setVisible(true);
+
+        chromosomePanelX = new HiCChromosomeFigPanel(superAdapter.getHiC());
+        chromosomePanelX.setMaximumSize(new Dimension(4000, 50));
+        chromosomePanelX.setPreferredSize(new Dimension(1, 50));
+        chromosomePanelX.setMinimumSize(new Dimension(1, 50));
+        bottomChromosomeFigPanel.add(chromosomePanelX, BorderLayout.CENTER);
+        bottomChromosomeFigPanel.add(chrSidePanel2, BorderLayout.EAST);
+        bottomChromosomeFigPanel.setVisible(true);
+
+        leftPanel.add(chrSidePanel, BorderLayout.SOUTH);
+        topPanel.add(chrSidePanel3, BorderLayout.EAST);
+
+        //---- chromosomeFigPanel1 ----
+        chromosomePanelY = new HiCChromosomeFigPanel(superAdapter.getHiC());
+        chromosomePanelY.setMaximumSize(new Dimension(50, 4000));
+        chromosomePanelY.setPreferredSize(new Dimension(50, 1));
+        chromosomePanelY.setMinimumSize(new Dimension(50, 1));
+        chromosomePanelY.setVisible(true);
+
+
         //---- heatmapPanel ----
         //Dimension screenDimension = Toolkit.getDefaultToolkit().getScreenSize();
         //int panelSize = screenDimension.height - 210;
@@ -334,7 +399,7 @@ public class MainViewPanel {
         wrapHeatmapPanel.setMaximumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setMinimumSize(new Dimension(panelDim));
         wrapHeatmapPanel.setPreferredSize(new Dimension(panelDim));
-        wrapHeatmapPanel.setBackground(Color.BLUE);
+        wrapHeatmapPanel.setBackground(Color.white);
         wrapHeatmapPanel.setVisible(true);
 
         heatmapPanel = new HeatmapPanel(superAdapter);
@@ -344,6 +409,10 @@ public class MainViewPanel {
         heatmapPanel.setBackground(Color.white);
 
         wrapHeatmapPanel.add(heatmapPanel, BorderLayout.CENTER);
+
+        //Chromosome Context Toggled
+        wrapHeatmapPanel.add(bottomChromosomeFigPanel, BorderLayout.SOUTH);
+        wrapHeatmapPanel.add(chromosomePanelY, BorderLayout.EAST);
 
         //hiCPanel.setMaximumSize(new Dimension(panelWidth, panelHeight));
         //hiCPanel.setMinimumSize(new Dimension(panelWidth, panelHeight));
@@ -498,9 +567,8 @@ public class MainViewPanel {
         Chromosome chrX = chr1.getIndex() < chr2.getIndex() ? chr1 : chr2;
         Chromosome chrY = chr1.getIndex() < chr2.getIndex() ? chr2 : chr1;
 
-        setNormalizationDisplayState(superAdapter.getHiC());
-
         superAdapter.unsafeUpdateHiCChromosomes(chrX, chrY);
+        setNormalizationDisplayState(superAdapter.getHiC());
 
         updateThumbnail(superAdapter.getHiC());
     }
@@ -510,6 +578,8 @@ public class MainViewPanel {
         chrBox2.setSelectedIndex(xChrom.getIndex());
         rulerPanelX.setContext(xContext, HiCRulerPanel.Orientation.HORIZONTAL);
         rulerPanelY.setContext(yContext, HiCRulerPanel.Orientation.VERTICAL);
+        chromosomePanelX.setContext(xContext, HiCChromosomeFigPanel.Orientation.HORIZONTAL);
+        chromosomePanelY.setContext(yContext, HiCChromosomeFigPanel.Orientation.VERTICAL);
         resolutionSlider.setEnabled(!xChrom.getName().equals(Globals.CHR_ALL));
     }
 
@@ -533,16 +603,26 @@ public class MainViewPanel {
 
     }
 
-    private boolean isIntraChromosomal() {
+    private boolean isInterChromosomal() {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
         return chr1.getIndex() != chr2.getIndex();
     }
 
+    /**
+     * Note that both versions of isWholeGenome are needed otherwise we get
+     * a bug when partial states have changed
+     */
     private boolean isWholeGenome() {
         Chromosome chr1 = (Chromosome) chrBox1.getSelectedItem();
         Chromosome chr2 = (Chromosome) chrBox2.getSelectedItem();
-        return chr1.getName().equals("All") || chr2.getName().equals("All");
+        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
+    }
+
+    private boolean isWholeGenome(HiC hic) {
+        Chromosome chr1 = hic.getXContext().getChromosome();
+        Chromosome chr2 = hic.getYContext().getChromosome();
+        return HiCFileTools.isAllChromosome(chr1) || HiCFileTools.isAllChromosome(chr2);
     }
 
     public void setNormalizationDisplayState(HiC hic) {
@@ -552,14 +632,14 @@ public class MainViewPanel {
             hic.setDisplayOption(MatrixType.OBSERVED);
             displayOptionComboBox.setSelectedIndex(0);
             normalizationComboBox.setSelectedIndex(0);
-        } else if (isIntraChromosomal()) {
-            if (hic.getDisplayOption() == MatrixType.PEARSON) {
+        } else if (isInterChromosomal()) {
+            if (MatrixType.isOnlyIntrachromosomalType(hic.getDisplayOption())) {
                 hic.setDisplayOption(MatrixType.OBSERVED);
                 displayOptionComboBox.setSelectedIndex(0);
             }
         }
 
-        normalizationComboBox.setEnabled(!isWholeGenome());
+        normalizationComboBox.setEnabled(!isWholeGenome(hic));
         displayOptionComboBox.setEnabled(true);
     }
 
@@ -568,8 +648,10 @@ public class MainViewPanel {
         trackPanelY.repaint();
     }
 
-
     public void updateThumbnail(HiC hic) {
+        if (ignoreUpdateThumbnail) return;
+        //new Exception().printStackTrace();
+
         if (hic.getMatrix() != null) {
 
             //   MatrixZoomData zd0 = initialZoom == null ? hic.getMatrix().getFirstZoomData(hic.getZoom().getUnit()) :
@@ -578,12 +660,9 @@ public class MainViewPanel {
             MatrixZoomData zdControl = null;
             if (hic.getControlMatrix() != null)
                 zdControl = hic.getControlMatrix().getFirstZoomData(hic.getZoom().getUnit());
-            Image thumbnail = heatmapPanel.getThumbnailImage(
-                    zd0,
-                    zdControl,
-                    thumbnailPanel.getWidth(),
-                    thumbnailPanel.getHeight(),
-                    hic.getDisplayOption());
+            Image thumbnail = heatmapPanel.getThumbnailImage(zd0, zdControl,
+                    thumbnailPanel.getWidth(), thumbnailPanel.getHeight(),
+                    hic.getDisplayOption(), hic.getNormalizationType());
             if (thumbnail != null) {
                 thumbnailPanel.setImage(thumbnail);
                 thumbnailPanel.repaint();
@@ -616,9 +695,10 @@ public class MainViewPanel {
         } else {
             resolutionSlider.setForeground(Color.BLACK);
         }
-        return superAdapter.safeDisplayOptionComboBoxActionPerformed();
+        return true;
+        // why are we calling this?  why is this a boolean method?
+        //return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
-
 
     public void updateTrackPanel(boolean hasTracks) {
 
@@ -647,10 +727,45 @@ public class MainViewPanel {
         trackPanelY.invalidate();
     }
 
+    public void setShowChromosomeFig(boolean showFigure) {
+
+        if (showFigure) {
+            if (!bottomChromosomeFigPanel.isVisible()) {
+                bottomChromosomeFigPanel.setVisible(true);
+            }
+            if (!chromosomePanelY.isVisible()) {
+                chromosomePanelY.setVisible(true);
+            }
+            if (!chrSidePanel.isVisible()) {
+                chrSidePanel.setVisible(true);
+            }
+            if (!chrSidePanel3.isVisible()) {
+                chrSidePanel3.setVisible(true);
+            }
+        } else {
+            if (bottomChromosomeFigPanel.isVisible()) {
+                bottomChromosomeFigPanel.setVisible(false);
+            }
+            if (chromosomePanelY.isVisible()) {
+                chromosomePanelY.setVisible(false);
+            }
+            if (chrSidePanel.isVisible()) {
+                chrSidePanel.setVisible(false);
+            }
+            if (chrSidePanel3.isVisible()) {
+                chrSidePanel3.setVisible(false);
+            }
+        }
+        HiCRulerPanel.setShowChromosomeFigure(showFigure);
+        chromosomePanelY.invalidate();
+        bottomChromosomeFigPanel.invalidate();
+        chrSidePanel.invalidate();
+        chrSidePanel3.invalidate();
+    }
+
     public String getToolTip() {
         return mouseHoverTextPanel.getText();
     }
-
 
     public void setDisplayBox(int indx) {
         displayOptionComboBox.setSelectedIndex(indx);
@@ -660,10 +775,11 @@ public class MainViewPanel {
         normalizationComboBox.setSelectedIndex(indx);
     }
 
-    public void setNormalizationEnabledForReload(){
+    public void setNormalizationEnabledForReload() {
         //normalizationComboBox.setEnabled(true);
         normalizationComboBox.setEnabled(!isWholeGenome());
     }
+
     public void setPositionChrLeft(String newPositionDate) {
         goPanel.setPositionChrLeft(newPositionDate);
     }
@@ -677,7 +793,11 @@ public class MainViewPanel {
         chrBox2.setEnabled(status);
         refreshButton.setEnabled(status);
         colorRangePanel.setElementsVisible(status, superAdapter);
-        setResolutionSliderVisible(status, superAdapter);
+        if (setResolutionSliderVisible(status, superAdapter)) {
+            // TODO succeeded
+        } else {
+            // TODO failed
+        }
         goPanel.setEnabled(status);
     }
 
@@ -685,7 +805,7 @@ public class MainViewPanel {
         return colorRangePanel.getColorRangeValues();
     }
 
-    public double getColorRangeScaleFactor(){
+    public double getColorRangeScaleFactor() {
         return colorRangePanel.getColorRangeScaleFactor();
     }
 
@@ -769,6 +889,15 @@ public class MainViewPanel {
     public HiCRulerPanel getRulerPanelX() {
         return rulerPanelX;
     }
+
+    public HiCChromosomeFigPanel getChromosomeFigPanelY() {
+        return chromosomePanelY;
+    }
+
+    public HiCChromosomeFigPanel getChromosomeFigPanelX() {
+        return chromosomePanelX;
+    }
+
 
     /*public boolean isPearsonDisplayed() {
         return displayOptionComboBox.getSelectedItem() == MatrixType.PEARSON;

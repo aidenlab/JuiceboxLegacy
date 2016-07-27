@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ public class DumpDialog extends JFileChooser {
     private JComboBox<String> box;
 
     /**
+     * TODO I think a good amount of the code below is duplicated in the dumpGeneralVector method and should call that instead
      *
      * @param mainWindow
      * @param hic
@@ -61,37 +62,18 @@ public class DumpDialog extends JFileChooser {
 
             try {
                 if (box.getSelectedItem().equals("Matrix")) {
-                    if (hic.getDisplayOption() == MatrixType.OBSERVED) {
-                        double[] nv1 = null;
-                        double[] nv2 = null;
-                        if (!(hic.getNormalizationType() == NormalizationType.NONE)) {
-                            NormalizationVector nv = hic.getNormalizationVector(zd.getChr1Idx());
-                            nv1 = nv.getData();
-                            if (zd.getChr1Idx() != zd.getChr2Idx()) {
-                                nv = hic.getNormalizationVector(zd.getChr2Idx());
-                                nv2 = nv.getData();
-                            } else {
-                                nv2 = nv1;
-                            }
-                        }
-                        zd.dump(new PrintWriter(getSelectedFile()), nv1, nv2);
-
-                    } else if (hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.PEARSON) {
-                        final ExpectedValueFunction df = hic.getDataset().getExpectedValues(zd.getZoom(),
-                                hic.getNormalizationType());
+                    ExpectedValueFunction df = null;
+                    MatrixType matrixType = hic.getDisplayOption();
+                    if (MatrixType.isExpectedValueType(matrixType)) {
+                        df = hic.getDataset().getExpectedValues(zd.getZoom(), hic.getNormalizationType());
                         if (df == null) {
                             JOptionPane.showMessageDialog(this, box.getSelectedItem() + " not available", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             return;
                         }
-                        if (hic.getDisplayOption() == MatrixType.OE) {
-                            zd.dumpOE(df, "oe",
-                                    hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
-                        } else {
-                            zd.dumpOE(df, "pearson",
-                                    hic.getNormalizationType(), null, new PrintWriter(getSelectedFile()));
-                        }
                     }
+                    zd.dump(new PrintWriter(getSelectedFile()), null, hic.getNormalizationType(), matrixType,
+                            true, hic.getCurrentRegionWindowGenomicPositions(), df);
 
                 } else if (box.getSelectedItem().equals("Norm vector")) {
 
@@ -125,7 +107,7 @@ public class DumpDialog extends JFileChooser {
                     }
                 } else if (box.getSelectedItem().equals("Eigenvector")) {
                     int chrIdx = zd.getChr1Idx();
-                    double[] eigenvector = hic.getEigenvector(chrIdx, 0);
+                    double[] eigenvector = hic.getEigenvector(chrIdx, 0, false);
 
                     if (eigenvector != null) {
                         Dump.dumpVector(new PrintWriter(getSelectedFile()), eigenvector, true);
@@ -145,7 +127,7 @@ public class DumpDialog extends JFileChooser {
         panel1.add(label);
         panel1.add(box);
         dialog.add(panel1, BorderLayout.NORTH);
-        setCurrentDirectory(DirectoryManager.getUserDirectory());
+        setCurrentDirectory(DirectoryManager.getHiCDirectory());
         setDialogTitle("Choose location for dump of matrix or vector");
         setFileSelectionMode(JFileChooser.FILES_ONLY);
         return dialog;

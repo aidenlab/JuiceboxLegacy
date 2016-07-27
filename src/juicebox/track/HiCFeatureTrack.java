@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package juicebox.track;
 import htsjdk.tribble.Feature;
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.data.HiCFileTools;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Exon;
 import org.broad.igv.feature.FeatureUtils;
@@ -77,7 +78,7 @@ public class HiCFeatureTrack extends HiCTrack {
     }
 
     @Override
-    public void render(Graphics2D g2d, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
+    public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
 
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
@@ -96,14 +97,14 @@ public class HiCFeatureTrack extends HiCTrack {
         int fy = y + (height - fh) / 2;
         int fCenter = y + height / 2;
 
-        g2d.setFont(font);
-        g2d.setColor(color);
+        g.setFont(font);
+        g.setColor(color);
 
-        Graphics strGraphics = g2d.create();
-        strGraphics.setColor(new Color(0, 150, 0));
+        //Graphics strGraphics = g.create();
+        g.setColor(new Color(0, 150, 0));
 
         if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !chr.equals("All")) {
+                !HiCFileTools.isAllChromosome(chr)) {
             chr = "chr" + chr;
         }
 
@@ -119,7 +120,7 @@ public class HiCFeatureTrack extends HiCTrack {
             IGVFeature feature = (IGVFeature) iter.next();
             final Color featureColor = feature.getColor();
             if (featureColor != null) {
-                g2d.setColor(featureColor);
+                g.setColor(featureColor);
             }
 
             double bin1 = getFractionalBin(feature.getStart(), scaleFactor, gridAxis);
@@ -139,23 +140,23 @@ public class HiCFeatureTrack extends HiCTrack {
             int fw = Math.max(1, xPixelRight - xPixelLeft);
 
             if (fw < 5 || feature.getExons() == null || feature.getExons().size() == 0) {
-                g2d.fillRect(xPixelLeft, fy, fw, fh);
+                g.fillRect(xPixelLeft, fy, fw, fh);
             } else {
 
                 // intron
-                g2d.drawLine(xPixelLeft, fCenter, xPixelRight, fCenter);
+                g.drawLine(xPixelLeft, fCenter, xPixelRight, fCenter);
 
                 // arrows
                 if (fw > 20) {
                     if (feature.getStrand() == Strand.POSITIVE) {
                         for (int p = xPixelLeft + 5; p < xPixelLeft + fw; p += 10) {
-                            g2d.drawLine(p - 2, fCenter - 2, p, fCenter);
-                            g2d.drawLine(p - 2, fCenter + 2, p, fCenter);
+                            g.drawLine(p - 2, fCenter - 2, p, fCenter);
+                            g.drawLine(p - 2, fCenter + 2, p, fCenter);
                         }
                     } else if (feature.getStrand() == Strand.NEGATIVE) {
                         for (int p = xPixelLeft + fw - 5; p > xPixelLeft; p -= 10) {
-                            g2d.drawLine(p + 2, fCenter - 2, p, fCenter);
-                            g2d.drawLine(p + 2, fCenter + 2, p, fCenter);
+                            g.drawLine(p + 2, fCenter - 2, p, fCenter);
+                            g.drawLine(p + 2, fCenter + 2, p, fCenter);
                         }
                     }
                 }
@@ -167,14 +168,9 @@ public class HiCFeatureTrack extends HiCTrack {
 
                     xPixelLeft = (int) ((bin1 - startBin) * scaleFactor);
                     fw = (int) ((bin2 - bin1 + 1) * scaleFactor);
-                    g2d.fillRect(xPixelLeft, fy, fw, fh);
+                    g.fillRect(xPixelLeft, fy, fw, fh);
                 }
-
-
             }
-
-
-            strGraphics.dispose();
         }
     }
 
@@ -222,7 +218,7 @@ public class HiCFeatureTrack extends HiCTrack {
         String chr = context.getChromosome().getName();
 
         if ((hic.getDataset().getGenomeId().equals("hg18") || hic.getDataset().getGenomeId().equals("hg19")) &&
-                !chr.equals("All")) {
+                !HiCFileTools.isAllChromosome(chr)) {
             chr = "chr" + chr;
         }
 

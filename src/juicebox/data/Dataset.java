@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -101,8 +101,7 @@ public class Dataset {
 
         String path = reader.getPath();
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -125,8 +124,7 @@ public class Dataset {
 
         String path = reader.getPath();
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -150,8 +148,7 @@ public class Dataset {
         String path = reader.getPath();
 
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -182,8 +179,7 @@ public class Dataset {
         String path = reader.getPath();
 
         //Special case for combined maps:
-        if (path == null)
-        {
+        if (path == null) {
             return null;
         }
 
@@ -776,6 +772,7 @@ public class Dataset {
         final HiC.Unit currentUnit = zoom.getUnit();
         List<HiCZoom> zoomList = currentUnit == HiC.Unit.BP ? bpZooms : fragZooms;
 
+        // TODO MSS - is there a reason not to just rewrite this using indexOf? cleaner?
         if (b) {
             for (int i = 0; i < zoomList.size() - 1; i++) {
                 if (zoom.equals(zoomList.get(i))) return zoomList.get(i + 1);
@@ -850,9 +847,9 @@ public class Dataset {
         loadedNormalizationVectors.put(normalizationVector.getKey(), normalizationVector);
         HiCZoom zoom = new HiCZoom(HiC.Unit.BP, resolution);
         String key = zoom.getKey() + "_LOADED";
-        ExpectedValueFunctionImpl function = (ExpectedValueFunctionImpl) getExpectedValues(zoom, NormalizationType.KR);
+        ExpectedValueFunctionImpl function = (ExpectedValueFunctionImpl) getExpectedValues(zoom, NormalizationType.KR); // TODO is this supposed to be hardcoded to KR?
 
-        ExpectedValueFunctionImpl df = new ExpectedValueFunctionImpl(NormalizationType.LOADED, "BP", resolution, exp, function.getNormFactors());
+        ExpectedValueFunctionImpl df = new ExpectedValueFunctionImpl(NormalizationType.LOADED, HiC.Unit.BP, resolution, exp, function.getNormFactors());
         expectedValueFunctionMap.put(key, df);
     }
 
@@ -860,62 +857,32 @@ public class Dataset {
     private String findRestrictionEnzyme(int sites) {
         if (genomeId == null) return null;
 
-        if (genomeId.equals("anasPlat1")) {
-            if (sites == 13393) return "DpnII/MboI";
-        } else if (genomeId.equals("canFam3")) {
+        if (genomeId.equals("canFam3")) {
             if (sites == 345776) return "DpnII/MboI";
         } else if (genomeId.equals("dMel")) {
             // arm_2L
             if (sites == 60924) return "DpnII/MboI";
             if (sites == 6742) return "HindIII";
-            if (sites == 185217) return "MseI";
-        } else if (genomeId.equals("galGal4")) {
-            if (sites == 465673) return "DpnII/MboI";
         } else if (genomeId.equals("hg18")) {
             if (sites == 575605) return "DpnII/MboI";
             if (sites == 64338) return "HindIII";
-        } else if (genomeId.equals("hg19") || genomeId.equals("hg19_contig")) {
-            // chromosome 1
-            if (sites == 22706) return "Acc65I";
-            if (sites == 4217) return "AgeI";
-            if (sites == 158473) return "BseYI";
-            if (sites == 74263) return "BspHI";
-            if (sites == 60834) return "BstUI2";
-            if (sites == 2284472) return "CpG";
+        } else if (genomeId.equals("hg19")) {
             if (sites == 576357) return "DpnII/MboI";
-            if (sites == 139125) return "HinP1I";
             if (sites == 64395) return "HindIII";
-            if (sites == 160930) return "HpyCH4IV2";
-            if (sites == 1632) return "MluI";
-            if (sites == 1428208) return "MseI";
-            if (sites == 194423) return "MspI";
             if (sites == 59852) return "NcoI";
-            if (sites == 22347) return "NheI";
-            if (sites == 1072254) return "NlaIII";
-            if (sites == 1128) return "NruI";
-            if (sites == 2344) return "SaII";
-            if (sites == 1006921) return "StyD4I";
-            if (sites == 256163) return "StyI";
-            if (sites == 119506) return "TaqI2";
-            if (sites == 9958) return "XhoI";
-            if (sites == 31942) return "XmaI";
         } else if (genomeId.equals("mm9")) {
             // chr1
             if (sites == 479082) return "DpnII/MboI";
             if (sites == 62882) return "HindIII";
-            if (sites == 1157974) return "MseI";
             if (sites == 60953) return "NcoI";
-            if (sites == 933321) return "NlaIII";
         } else if (genomeId.equals("mm10")) {
             if (sites == 480062) return "DpnII/MboI";
             if (sites == 63013) return "HindIII";
         } else if (genomeId.equals("Pf3D7")) {
             if (sites == 13) return "DpnII/MboI";
-        }  else if (genomeId.equals("sCerS288c")) {
+        } else if (genomeId.equals("sCerS288c")) {
             // chrI
             if (sites == 65) return "HindIII";
-        } else if (genomeId.equals("susScr3")) {
-            if (sites == 801622) return "DpnII/MboI";
         }
         return null;
     }

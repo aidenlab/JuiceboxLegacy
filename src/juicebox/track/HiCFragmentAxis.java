@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,10 @@ public class HiCFragmentAxis implements HiCGridAxis {
     }
 
 
+    // todo I think both getGenomicStart/End below have a bug - MSS
+    // getGenomicStart can never actually return sites[sites.length-1]
+    // getGenomicEnd can never actually return chrLength
+    // maybe this is the correct behavior, but this actually seems like a bug
     @Override
     public int getGenomicStart(double binNumber) {
         int fragNumber = (int) binNumber * binSize;
@@ -65,7 +69,6 @@ public class HiCFragmentAxis implements HiCGridAxis {
         }
 
         return binNumber == 0 ? 0 : sites[siteIdx - 1];
-
     }
 
     @Override

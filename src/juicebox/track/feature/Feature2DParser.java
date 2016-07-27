@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,17 +82,17 @@ public class Feature2DParser {
             nextLine = br.readLine();
             if (nextLine == null || nextLine.length() < 1) {
                 System.err.println("Empty list provided");
-                System.exit(-5);
+                System.exit(23);
             }
 
-            String[] headers = Globals.tabPattern.split(nextLine);
+            String[] headers = getHeaders(nextLine);
 
             int errorCount = 0;
             int lineNum = 1;
             while ((nextLine = br.readLine()) != null) {
                 lineNum++;
                 String[] tokens = Globals.tabPattern.split(nextLine);
-                if (tokens.length > headers.length) {
+                if (tokens.length > headers.length) { //TODO why greater, use "!=" ? (also below)
                     String text = "Improperly formatted file: \nLine " + lineNum + " has " + tokens.length + " entries" +
                             " while header has " + headers.length;
                     System.err.println(text);
@@ -220,7 +220,7 @@ public class Feature2DParser {
 
             // header
             nextLine = br.readLine();
-            String[] headers = Globals.tabPattern.split(nextLine);
+            String[] headers = getHeaders(nextLine);
 
             int errorCount = 0;
             int lineNum = 1;
@@ -322,7 +322,7 @@ public class Feature2DParser {
 
             // header
             nextLine = br.readLine();
-            String[] headers = Globals.tabPattern.split(nextLine);
+            String[] headers = getHeaders(nextLine);
 
             int errorCount = 0;
             int lineNum = 1;
@@ -400,4 +400,29 @@ public class Feature2DParser {
 
         return newList;
     }
+    /**
+     * Backwards compatibility with original loops list
+     * @param line Header token, usually not converted but old ones will be
+     * @return  Appropriate header
+     */
+    private static String[] getHeaders(String line) {
+        String[] tmpHeaders = Globals.tabPattern.split(line);
+        String[] headers = new String[tmpHeaders.length];
+
+        for (int i=0; i<tmpHeaders.length; i++) {
+            if (tmpHeaders[i].equals("o")) headers[i] = "observed";
+            else if (tmpHeaders[i].equals("e_bl")) headers[i] = "expectedBL";
+            else if (tmpHeaders[i].equals("e_donut")) headers[i] = "expectedDonut";
+            else if (tmpHeaders[i].equals("e_h")) headers[i] = "expectedH";
+            else if (tmpHeaders[i].equals("e_v")) headers[i] = "expectedV";
+            else if (tmpHeaders[i].equals("fdr_bl")) headers[i] = "fdrBL";
+            else if (tmpHeaders[i].equals("fdr_donut")) headers[i] = "fdrDonut";
+            else if (tmpHeaders[i].equals("fdr_h")) headers[i] = "fdrH";
+            else if (tmpHeaders[i].equals("fdr_v")) headers[i] = "fdrV";
+            else if (tmpHeaders[i].equals("num_collapsed")) headers[i] = "numCollapsed";
+            else headers[i] = tmpHeaders[i];
+        }
+        return headers;
+    }
+
 }

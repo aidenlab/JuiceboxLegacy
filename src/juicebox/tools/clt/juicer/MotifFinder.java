@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,12 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.data.HiCFileTools;
 import juicebox.data.anchor.MotifAnchor;
 import juicebox.data.anchor.MotifAnchorParser;
 import juicebox.data.anchor.MotifAnchorTools;
 import juicebox.data.feature.GenomeWideList;
+import juicebox.tools.clt.CommandLineParserForJuicer;
 import juicebox.tools.clt.JuicerCLT;
 import juicebox.track.feature.Feature2DList;
 import juicebox.track.feature.Feature2DParser;
@@ -45,15 +45,15 @@ import java.util.List;
  */
 public class MotifFinder extends JuicerCLT {
 
+    private final List<String> tierOneFiles = new ArrayList<String>();
+    private final List<String> tierTwoFiles = new ArrayList<String>();
+    private final List<String> tierThreeFiles = new ArrayList<String>();
     private String outputPath;
     private String loopListPath;
     private String genomeID;
     private List<String> proteinsForUniqueMotifPaths, proteinsForInferredMotifPaths;
     private String bedFileDirPath;
     private String globalMotifListPath;
-    private List<String> tierOneFiles = new ArrayList<String>();
-    private List<String> tierTwoFiles = new ArrayList<String>();
-    private List<String> tierThreeFiles = new ArrayList<String>();
     private GenomeWideList<MotifAnchor> genomeWideAnchorsList = new GenomeWideList<MotifAnchor>();
 
     public MotifFinder() {
@@ -61,11 +61,19 @@ public class MotifFinder extends JuicerCLT {
         MotifAnchor.uniquenessShouldSupercedeConvergentRule = true;
     }
 
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public static GenomeWideList<MotifAnchor> getIntersectionOfBEDFiles(List<Chromosome> chromosomes, List<String> bedFiles) {
+        GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(0));
+        for (int i = 1; i < bedFiles.size(); i++) {
+            GenomeWideList<MotifAnchor> nextProteinList = MotifAnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(i));
+            MotifAnchorTools.intersectLists(proteins, nextProteinList, false);
+        }
+        return proteins;
+    }
 
+    @Override
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 4 && args.length != 5) {
-            this.printUsage();
+            this.printUsageAndExit();
         }
 
         int i = 1;
@@ -89,9 +97,10 @@ public class MotifFinder extends JuicerCLT {
             System.err.println("All BED files should include the '.bed' extension");
             System.err.println("BED files for locating unique motifs should be located in given_bed_file_dir/unique");
             System.err.println("BED files for locating inferred motifs should be located in given_bed_file_dir/inferred");
-            System.exit(-4);
+            System.exit(54);
         }
 
+        // TODO add specific chromosome option (i.e. use givenChromosomes)
     }
 
     @Override
@@ -104,7 +113,7 @@ public class MotifFinder extends JuicerCLT {
 
         findInferredMotifs(chromosomes, features);
 
-        features.exportFeatureList(outputPath, false, "NA");
+        features.exportFeatureList(new File(outputPath), false, Feature2DList.ListFormat.NA);
         System.out.println("Motif Finder complete");
     }
 
@@ -139,7 +148,7 @@ public class MotifFinder extends JuicerCLT {
         GenomeWideList<MotifAnchor> inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
         GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, true);
 
-        GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
+        GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();
         GenomeWideList<MotifAnchor> upStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, true);
         MotifAnchorTools.retainProteinsInLocus(inferredProteins, upStreamAnchors, false, true);
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, inferredProteins);
@@ -147,7 +156,7 @@ public class MotifFinder extends JuicerCLT {
 
         // reset
         inferredProteins = getIntersectionOfBEDFiles(chromosomes, proteinsForInferredMotifPaths);
-        globalAnchors = loadMotifs(chromosomes);
+        globalAnchors = retrieveFreshMotifs();
 
         GenomeWideList<MotifAnchor> downStreamAnchors = MotifAnchorTools.extractDirectionalAnchors(featureAnchors, false);
         MotifAnchorTools.retainProteinsInLocus(inferredProteins, downStreamAnchors, false, true);
@@ -170,8 +179,8 @@ public class MotifFinder extends JuicerCLT {
         }
     }
 
-    public GenomeWideList<MotifAnchor> getThreeTierFilteredProteinTrack(List<Chromosome> chromosomes,
-                                                                        GenomeWideList<MotifAnchor> baseList) {
+    private GenomeWideList<MotifAnchor> getThreeTierFilteredProteinTrack(List<Chromosome> chromosomes,
+                                                                         GenomeWideList<MotifAnchor> baseList) {
 
         if (tierOneFiles.size() > 0) {
             GenomeWideList<MotifAnchor> tierOneProteins = getIntersectionOfBEDFiles(chromosomes, tierOneFiles);
@@ -195,7 +204,7 @@ public class MotifFinder extends JuicerCLT {
         } else {
             // no files
             System.err.println("No CTCF files provided");
-            System.exit(-5);
+            System.exit(55);
             return null;
         }
     }
@@ -228,20 +237,26 @@ public class MotifFinder extends JuicerCLT {
         GenomeWideList<MotifAnchor> featureAnchors = MotifAnchorTools.extractAnchorsFromFeatures(features, false);
         GenomeWideList<MotifAnchor> threeTierFilteredProteins = getThreeTierFilteredProteinTrack(chromosomes, featureAnchors);
 
-        GenomeWideList<MotifAnchor> globalAnchors = loadMotifs(chromosomes);
+        GenomeWideList<MotifAnchor> globalAnchors = retrieveFreshMotifs();
         //MotifAnchorTools.intersectLists(threeTierFilteredProteins,globalAnchors, true);
 
         MotifAnchorTools.retainBestMotifsInLocus(globalAnchors, threeTierFilteredProteins);
         MotifAnchorTools.updateOriginalFeatures(globalAnchors, true, 0);
     }
 
-    private GenomeWideList<MotifAnchor> loadMotifs(List<Chromosome> chromosomes) {
+    private GenomeWideList<MotifAnchor> retrieveFreshMotifs() {
         if (genomeWideAnchorsList.size() < 10) {
             GenomeWideList<MotifAnchor> anchors;
             if (globalMotifListPath == null || globalMotifListPath.length() < 1) {
-                anchors = MotifAnchorParser.loadGlobalMotifs(genomeID, chromosomes);
+                anchors = MotifAnchorParser.loadMotifsFromGenomeID(genomeID, null);
             } else {
-                anchors = MotifAnchorParser.loadMotifs(globalMotifListPath, chromosomes, null);
+                if (globalMotifListPath.contains("http")) {
+                    // url
+                    anchors = MotifAnchorParser.loadMotifsFromURL(globalMotifListPath, genomeID, null);
+                } else {
+                    // local file
+                    anchors = MotifAnchorParser.loadMotifsFromLocalFile(globalMotifListPath, genomeID, null);
+                }
             }
             genomeWideAnchorsList = new GenomeWideList<MotifAnchor>(anchors);
             return anchors;
@@ -292,12 +307,5 @@ public class MotifFinder extends JuicerCLT {
         return bedFiles;
     }
 
-    private GenomeWideList<MotifAnchor> getIntersectionOfBEDFiles(List<Chromosome> chromosomes, List<String> bedFiles) {
-        GenomeWideList<MotifAnchor> proteins = MotifAnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(0));
-        for (int i = 1; i < bedFiles.size(); i++) {
-            GenomeWideList<MotifAnchor> nextProteinList = MotifAnchorParser.loadFromBEDFile(chromosomes, bedFiles.get(i));
-            MotifAnchorTools.intersectLists(proteins, nextProteinList, false);
-        }
-        return proteins;
-    }
+
 }

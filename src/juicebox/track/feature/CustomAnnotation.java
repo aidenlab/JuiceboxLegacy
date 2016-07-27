@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,9 @@
 
 package juicebox.track.feature;
 
+import juicebox.DirectoryManager;
 import juicebox.data.HiCFileTools;
+import juicebox.gui.MainMenuBar;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -112,7 +114,7 @@ public class CustomAnnotation {
     // Requires that lastItem is not null
     private void makeTempFile() {
         String prefix = "unsaved-hiC-annotations" + id;
-        tempFile = HiCFileTools.openTempFile(prefix);
+        tempFile = new File(DirectoryManager.getHiCDirectory(), prefix + ".txt");
         tempWriter = HiCFileTools.openWriter(tempFile);
 
         Feature2D singleFeature = customAnnotationList.extractSingleFeature();
@@ -121,19 +123,19 @@ public class CustomAnnotation {
         } else {
             tempWriter.println(singleFeature.getOutputFileHeader());
         }
-        //System.out.println("Made temp file " + tempFile.getAbsolutePath());
     }
 
     public void deleteTempFile() {
-        //System.out.println("DELETED temp file " + tempFile.getAbsolutePath());
         if (tempWriter != null) {
             tempWriter.close();
         }
-        if (tempFile == null){
+        if (tempFile == null) {
             String prefix = "unsaved-hiC-annotations" + id;
-            tempFile = HiCFileTools.openTempFile(prefix);
+            tempFile = new File(DirectoryManager.getHiCDirectory(), prefix + ".txt");
         }
-        tempFile.delete();
+        if (tempFile.exists()) {
+            tempFile.delete();
+        }
     }
 
     // Set show loops
@@ -215,7 +217,7 @@ public class CustomAnnotation {
     // Export annotations
     public int exportAnnotations(String outputFilePath) {
         int ok;
-        ok = customAnnotationList.exportFeatureList(outputFilePath, false, "NA");
+        ok = customAnnotationList.exportFeatureList(new File(outputFilePath), false, Feature2DList.ListFormat.NA);
         if (ok < 0)
             return ok;
         unsavedEdits = false;
@@ -225,6 +227,7 @@ public class CustomAnnotation {
     // Note assumes that all attributes are already correctly formatted. Ok to assume
     // because loaded list must have consistent formatting.
     public void addVisibleToCustom(Feature2DList newAnnotations) {
+        MainMenuBar.exportAnnotationsMI.setEnabled(true);
         Feature2D featureZero = newAnnotations.extractSingleFeature();
         // Add attributes to feature
         List<String> featureKeys = featureZero.getAttributeKeys();
@@ -248,7 +251,8 @@ public class CustomAnnotation {
 
     public int exportOverlap(Feature2DList otherAnnotations, String outputFilePath) {
         int ok;
-        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(outputFilePath, false, "NA");
+        ok = customAnnotationList.getOverlap(otherAnnotations).exportFeatureList(
+                new File(outputFilePath), false, Feature2DList.ListFormat.NA);
         if (ok < 0)
             return ok;
         unsavedEdits = false;

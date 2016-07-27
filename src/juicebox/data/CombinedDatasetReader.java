@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -205,7 +205,7 @@ public class CombinedDatasetReader implements DatasetReader {
             }
         }
 
-        // TODO Currently assuming all datasets have same bp resolutions
+        // Assuming all datasets have same bp resolutions -- TODO check this
         dataset.bpZooms = firstDataset.getBpZooms();
         if (hasFrags) {
             dataset.fragZooms = firstDataset.getFragZooms();
@@ -219,7 +219,7 @@ public class CombinedDatasetReader implements DatasetReader {
         Collection<String> keys = firstDataset.getExpectedValueFunctionMap().keySet();
         Set<String> zoomsToRemove = new HashSet<String>();
         for (String key : keys) {
-            if (!hasFrags && key.startsWith("FRAG")) continue;
+            if (!hasFrags && key.startsWith(HiC.Unit.FRAG.toString())) continue;
             List<ExpectedValueFunction> evFunctions = new ArrayList<ExpectedValueFunction>();
             boolean haveAll = true;
             for (Dataset ds : datasetList) {
@@ -312,7 +312,7 @@ public class CombinedDatasetReader implements DatasetReader {
 
             ExpectedValueFunction protoFunction = densityFunctions.get(0);
             int binSize = protoFunction.getBinSize();
-            String unit = protoFunction.getUnit();
+            HiC.Unit unit = protoFunction.getUnit();
             NormalizationType type = protoFunction.getNormalizationType();
             int len = protoFunction.getLength();
 

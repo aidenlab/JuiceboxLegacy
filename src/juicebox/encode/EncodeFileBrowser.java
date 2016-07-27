@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -92,7 +92,7 @@ public class EncodeFileBrowser extends JDialog {
         return instance;
     }
 
-    public synchronized static EncodeFileBrowser getHiCInstance() throws IOException {
+    private synchronized static EncodeFileBrowser getHiCInstance() throws IOException {
         EncodeFileBrowser instance = instanceMap.get("hic");
         if (instance == null) {
             Pair<String[], List<EncodeFileRecord>> records = getEncodeFileRecords("hic");
@@ -106,7 +106,7 @@ public class EncodeFileBrowser extends JDialog {
         return instance;
     }
 
-    public static boolean genomeSupported(String genomeId) {
+    private static boolean genomeSupported(String genomeId) {
         return genomeId != null && supportedGenomes.contains(getEncodeGenomeId(genomeId));
     }
 
@@ -158,10 +158,6 @@ public class EncodeFileBrowser extends JDialog {
         } finally {
             if (is != null) is.close();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        getInstance("hg19").setVisible(true);
     }
 
     private void init(final EncodeTableModel model) {

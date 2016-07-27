@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -121,7 +121,11 @@ public class JColorRangePanel extends JPanel {
                 ColorRangeDialog rangeDialog = new ColorRangeDialog(superAdapter, JColorRangePanel.this,
                         colorRangeSlider, colorRangeScaleFactor, superAdapter.getHiC().getDisplayOption() == MatrixType.OBSERVED);
                 setColorRangeSliderVisible(false, superAdapter);
-                superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter);
+                if (superAdapter.getMainViewPanel().setResolutionSliderVisible(false, superAdapter)) {
+                    // TODO succeeded
+                } else {
+                    // TODO failed
+                }
                 rangeDialog.setVisible(true);
             }
         });
@@ -224,15 +228,17 @@ public class JColorRangePanel extends JPanel {
         } else {
             colorRangeLabel.setForeground(Color.BLACK);
         }
-        return superAdapter.safeDisplayOptionComboBoxActionPerformed();
+        return true;
+        //why are we calling this?  why is this method a boolean method at all?
+        //return superAdapter.safeDisplayOptionComboBoxActionPerformed();
     }
 
-    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max){
+    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max) {
         double scaleFactor = 100.0 / max;
-        updateColorSlider(hic,min,lower,upper,max,scaleFactor);
+        updateColorSlider(hic, min, lower, upper, max, scaleFactor);
     }
 
-    public void updateColorSlider(HiC hic, double min, double lower, double upper, double max, double scaleFactor) {
+    private void updateColorSlider(HiC hic, double min, double lower, double upper, double max, double scaleFactor) {
         // We need to scale min and max to integers for the slider to work.  Scale such that there are
         // 100 divisions between max and 0
 
@@ -329,14 +335,13 @@ public class JColorRangePanel extends JPanel {
 
     }
 
-    public double getColorRangeScaleFactor(){
+    public double getColorRangeScaleFactor() {
         return colorRangeScaleFactor;
     }
 
     private void colorRangeSliderUpdateToolTip(HiC hic) {
-        if (hic.getDisplayOption() == MatrixType.OBSERVED ||
-                hic.getDisplayOption() == MatrixType.CONTROL ||
-                hic.getDisplayOption() == MatrixType.OE || hic.getDisplayOption() == MatrixType.RATIO) {
+
+        if (MatrixType.isColorScaleType(hic.getDisplayOption())) {
 
             int iMin = colorRangeSlider.getMinimum();
             int lValue = colorRangeSlider.getLowerValue();
@@ -391,15 +396,11 @@ public class JColorRangePanel extends JPanel {
     }
 
     public void handleNewFileLoading(MatrixType option, boolean activatePreDef) {
-        // ((ColorRangeModel)colorRangeSlider.getModel()).setObserved(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || option == MatrixType.EXPECTED);
-        boolean activateOE = option == MatrixType.OE || option == MatrixType.RATIO;
-        boolean isObservedOrControl = option == MatrixType.OBSERVED || option == MatrixType.CONTROL;
-
-        colorRangeSlider.setEnabled(option == MatrixType.OBSERVED || option == MatrixType.CONTROL || activateOE || activatePreDef);
-        colorRangeSlider.setDisplayToOE(activateOE);
+        boolean isColorScaleType = MatrixType.isColorScaleType(option);
+        colorRangeSlider.setEnabled(isColorScaleType || activatePreDef);
+        colorRangeSlider.setDisplayToOE(MatrixType.isComparisonType(option));
         colorRangeSlider.setDisplayToPreDef(activatePreDef);
-
-        plusButton.setEnabled(activateOE || isObservedOrControl);
-        minusButton.setEnabled(activateOE || isObservedOrControl);
+        plusButton.setEnabled(isColorScaleType);
+        minusButton.setEnabled(isColorScaleType);
     }
 }

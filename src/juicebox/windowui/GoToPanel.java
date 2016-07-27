@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.windowui;
 
+import com.google.common.primitives.Ints;
 import com.jidesoft.swing.JideButton;
 import htsjdk.samtools.seekablestream.SeekableHTTPStream;
 import juicebox.HiC;
@@ -44,7 +45,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by nchernia on 4/2/15.
@@ -194,7 +197,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
 
         //Read resolution:
         int outBinSize = 0;
-        String resolutionUnits = "BP";
+        HiC.Unit resolutionUnits = HiC.Unit.BP;
         int estimatedOutBinSize = Math.max(topChrPositions[3], leftChrPositions[3]);
 
         if (topChrTokens.length > 3 || (topDashChrTokens.length == 1 && topChrTokens.length > 2)) {
@@ -202,7 +205,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 int[] resolutionParameters = extractResolutionParametersFromTokens(topChrTokens, topDashChrTokens, positionChrTop);
                 outBinSize = resolutionParameters[0];
                 if (resolutionParameters[1] < 0) {
-                    resolutionUnits = "FRAG";
+                    resolutionUnits = HiC.Unit.FRAG;
                 }
             } catch (Exception e) {
                 return;
@@ -212,7 +215,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
                 int[] resolutionParameters = extractResolutionParametersFromTokens(leftChrTokens, leftDashChrTokens, positionChrLeft);
                 outBinSize = resolutionParameters[0];
                 if (resolutionParameters[1] < 0) {
-                    resolutionUnits = "FRAG";
+                    resolutionUnits = HiC.Unit.FRAG;
                 }
             } catch (Exception e) {
                 return;
@@ -222,7 +225,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         } else if (hic.getZoom().getBinSize() != 0) { //no resolution specified, not at whole genome view
             outBinSize = hic.validateBinSize(String.valueOf(hic.getZoom().getBinSize()));
             if (outBinSize != Integer.MIN_VALUE) {
-                resolutionUnits = hic.getZoom().getUnit().toString();
+                resolutionUnits = hic.getZoom().getUnit();
             }
         }
 
@@ -236,8 +239,6 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         hic.setLocation(topChr.getName(), leftChr.getName(), resolutionUnits, outBinSize, Math.max(topChrPositions[2], 0),
                 Math.max(leftChrPositions[2], 0), hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Goto", true);
 
-        //We might end with All->All view, make sure normalization state is updates accordingly...
-        superAdapter.setNormalizationDisplayState();
     }
 
     private int[] extractResolutionParametersFromTokens(String[] chrTokens, String[] dashChrTokens, JTextField positionChr) {
@@ -270,8 +271,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         if (chrTokens.length > 2 && dashChrTokens.length > 1) {
             //Make sure values are numerical:
             try {
-                start = Integer.min(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
-                end = Integer.max(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
+                start = Math.min(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
+                end = Math.max(cleanUpNumber(chrTokens[1]), cleanUpNumber(chrTokens[2]));
             } catch (Exception e) {
                 log.error("Cannot parse " + chrTokens[1] + " or " + chrTokens[2] + ". Expecting int");
                 positionChr.setBackground(Color.yellow);
@@ -294,26 +295,15 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
         return new int[]{start, end, outBin, estimatedOutBinSize};
     }
 
+    // TODO this should get map keys from official list of resolutions, sort the list, then return appropriately
     private int getEstimationOfAppropriateZoomLevel(int diff0) {
         // divide because the width from x1 to x2 in chromosome should be significantly bigger then the resolution
         int diff = diff0 / 1000;
-        if (diff >= 2500000) {
-            return 2500000;
-        } else if (diff >= 1000000) {
-            return 1000000;
-        } else if (diff >= 500000) {
-            return 500000;
-        } else if (diff >= 100000) {
-            return 100000;
-        } else if (diff >= 50000) {
-            return 50000;
-        } else if (diff >= 25000) {
-            return 25000;
-        } else if (diff >= 10000) {
-            return 10000;
-        } else {
-            return 5000;
+        for (int res : HiCGlobals.bpBinSizes) {
+            if (diff >= res)
+                return res;
         }
+        return 5000;
     }
 
     private int cleanUpNumber(String number) {
@@ -326,8 +316,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     private void parseGenePositionText() {
         String genomeID = hic.getDataset().getGenomeId();
         // Currently only human and mouse, not worrying about small differences in location between genomes
-        if (genomeID.equals("b37") || genomeID.equals("hg38") || genomeID.equals("hg18")) genomeID = "hg19";
-        if (genomeID.equals("mm10")) genomeID = "mm9";
+        if (genomeID.equals("b37")) genomeID = "hg19";
         if (geneLocationHashMap == null || !genomeID.equals(this.genomeID)) {
             initializeGeneHashMap(genomeID);
         } else {
@@ -361,7 +350,7 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             SeekableHTTPStream stream = new SeekableHTTPStream(new URL(path));
 
             reader = new BufferedReader(new InputStreamReader(stream), HiCGlobals.bufferSize);
-            MessageUtils.showMessage("Loading gene database for " + genomeID + ".\nIt might take few minutes. ");
+            MessageUtils.showMessage("Loading gene database for " + genomeID + ".\nIt might take a minute or so. ");
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to read gene database", error);
             positionChrTop.setBackground(Color.yellow);
@@ -376,8 +365,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             while ((nextLine = reader.readLine()) != null) {
                 String[] values = nextLine.split(" ");
                 GeneLocation location = new GeneLocation(values[2].trim(), Integer.valueOf(values[3].trim()));
-                geneLocationHashMap.put(values[0].trim(), location);
-                geneLocationHashMap.put(values[1].trim(), location);
+                geneLocationHashMap.put(values[0].trim().toLowerCase(), location);
+                geneLocationHashMap.put(values[1].trim().toLowerCase(), location);
             }
         } catch (Exception error) {
             MessageUtils.showErrorMessage("Failed to parse gene database", error);
@@ -390,8 +379,8 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
     }
 
     private void extractGeneLocation() {
-        GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim());
-        GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim());
+        GeneLocation location1 = geneLocationHashMap.get(positionChrTop.getText().trim().toLowerCase());
+        GeneLocation location2 = geneLocationHashMap.get(positionChrLeft.getText().trim().toLowerCase());
         if (location1 == null) {
             positionChrTop.setBackground(Color.yellow);
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrTop.getText().trim());
@@ -402,8 +391,16 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             MessageUtils.showMessage("Gene location map doesn't contain " + positionChrLeft.getText().trim());
             return;
         }
-        hic.setLocation(location1.chromosome, location2.chromosome, "BP", hic.getZoom().getBinSize(), location1.centerPosition,
-                location2.centerPosition, hic.getScaleFactor(), HiC.ZoomCallType.STANDARD, "Gene Goto", true);
+
+        List<Integer> bpResolutions = Ints.asList(HiCGlobals.bpBinSizes);
+        int geneZoomResolution = hic.getZoom().getBinSize();
+        if (!bpResolutions.contains(geneZoomResolution)) {
+            geneZoomResolution = Collections.min(bpResolutions);
+        }
+
+        hic.setLocation(location1.chromosome, location2.chromosome, HiC.Unit.BP, geneZoomResolution,
+                location1.centerPosition, location2.centerPosition, hic.getScaleFactor(),
+                HiC.ZoomCallType.STANDARD, "Gene Goto", true);
 
         superAdapter.setNormalizationDisplayState();
     }
@@ -426,5 +423,4 @@ public class GoToPanel extends JPanel implements ActionListener, FocusListener {
             this.centerPosition = centerPosition;
         }
     }
-
 }

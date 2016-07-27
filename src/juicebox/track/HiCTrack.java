@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,6 +79,32 @@ public abstract class HiCTrack {
         });
         menu.add(menuItem);
 
+        JMenuItem menuItem2 = new JMenuItem("Move up...");
+        menuItem2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                trackPanel.moveTrackUp(HiCTrack.this);
+            }
+        });
+
+        //if track is on the top don't add to the menu
+        if (trackPanel.getTrackList().indexOf(HiCTrack.this) != 0) {
+            menu.add(menuItem2);
+        }
+
+        JMenuItem menuItem3 = new JMenuItem("Move down...");
+        menuItem3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                trackPanel.moveTrackDown(HiCTrack.this);
+            }
+        });
+
+        //if track is on the bottom don't add to the menu
+        if (trackPanel.getTrackList().indexOf(HiCTrack.this) != trackPanel.getTrackList().size() - 1) {
+            menu.add(menuItem3);
+        }
+
         return menu;
     }
 
@@ -88,7 +114,7 @@ public abstract class HiCTrack {
 
     public abstract Color getPosColor();
 
-    public abstract void render(Graphics2D g2d,
+    public abstract void render(Graphics g2d,
                                 Context context,
                                 Rectangle trackRectangle,
                                 TrackPanel.Orientation orientation,

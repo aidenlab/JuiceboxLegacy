@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ import java.util.List;
 public class LoadStateFromXMLFile {
 
     public static void reloadSelectedState(SuperAdapter superAdapter, String mapPath) {
-        superAdapter.getHiC().clearTracksForReloadState();
+        superAdapter.getHiC().clearTracksForReloadState(); // TODO - should only remove necessary ones
         try {
             loadSavedStatePreliminaryStep(XMLFileParser.parseXML(mapPath), superAdapter, superAdapter.getHiC());
         } catch (IOException e) {
@@ -60,11 +60,12 @@ public class LoadStateFromXMLFile {
         String[] initialInfo = new String[6]; //hicURL,, controlURL,xChr,yChr,unitSize
         double[] doubleInfo = new double[8]; //xOrigin, yOrigin, ScaleFactor, minColorVal, lowerColorVal, upperColorVal, maxColorVal, colorScaleFactor
         String[] trackURLsAndNamesAndConfigInfo = new String[3];
-        //System.out.println("Executing: " + Arrays.toString(infoForReload));
+        //System.out.println("Executing: " + Arrays.toString(infoForReload)); //TODO for reload
         if (infoForReload.length > 0) {
             //int fileSize = infoForReload.length;
             if (infoForReload.length > 15) {
                 try {
+                    // TODO cleanup extraction of data
                     initialInfo[0] = infoForReload[1]; //HiC Map Name
                     initialInfo[1] = infoForReload[2]; //hicURL
                     initialInfo[2] = infoForReload[3]; //controlURL
@@ -120,7 +121,7 @@ public class LoadStateFromXMLFile {
                                                MatrixType displaySelection, NormalizationType normSelection,
                                                String[] tracks) {
 
-        superAdapter.resetControlMap();
+        superAdapter.resetControlMap(); //TODO test
 
         String mapNames = initialInfo[0];
         String mapURLs = initialInfo[1];
@@ -137,14 +138,15 @@ public class LoadStateFromXMLFile {
         double maxColor = doubleInfo[6];
         double colorScaleFactor = doubleInfo[7];
 
+        // TODO only do this if not identical to current file
         String[] temp = mapNames.split("\\(control=");
         String mainMapNames = temp[0];
 
         List<String> urls = Arrays.asList(mapURLs.split("\\#\\#"));
         superAdapter.unsafeLoadWithTitleFix(urls, false, mainMapNames, true);
 
-        if(!controlURLs.contains("null") && temp.length >1){
-            String ctrlMapNames = temp[1].substring(0,temp[1].length()-1);
+        if (!controlURLs.contains("null") && temp.length > 1) {
+            String ctrlMapNames = temp[1].substring(0, temp[1].length() - 1);
             List<String> ctrlURLs = Arrays.asList(controlURLs.split("\\#\\#"));
             superAdapter.unsafeLoadWithTitleFix(ctrlURLs, true, ctrlMapNames, true);
         }
@@ -153,7 +155,8 @@ public class LoadStateFromXMLFile {
         superAdapter.getMainViewPanel().setDisplayBox(displaySelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationBox(normSelection.ordinal());
         superAdapter.getMainViewPanel().setNormalizationEnabledForReload();
-        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor/colorScaleFactor, lowColor/colorScaleFactor, upColor/colorScaleFactor, maxColor/colorScaleFactor);
+        //todo: Check that color scale value is not 0!
+        superAdapter.getMainViewPanel().updateColorSlider(hic, minColor / colorScaleFactor, lowColor / colorScaleFactor, upColor / colorScaleFactor, maxColor / colorScaleFactor);
         superAdapter.setEnableForAllElements(true);
 
         LoadEncodeAction loadEncodeAction = superAdapter.getEncodeAction();
@@ -193,9 +196,9 @@ public class LoadStateFromXMLFile {
                             if (!tracks[2].contains("none") && tracks[2].contains(trackNames[i].trim())) {
                                 HiCDataTrack hiCDataTrack = (HiCDataTrack) loadedTrack;
                                 String[] configTrackInfo = tracks[2].split("\\*\\*");
-                                for (int k = 0; k < configTrackInfo.length; k++) {
+                                for (String aConfigTrackInfo : configTrackInfo) {
 
-                                    String[] configInfo = configTrackInfo[k].split("\\,");
+                                    String[] configInfo = aConfigTrackInfo.split("\\,"); //todo check
                                     hiCDataTrack.setColor(new Color(Integer.parseInt(configInfo[1])));
                                     hiCDataTrack.setAltColor(new Color(Integer.parseInt(configInfo[2])));
                                     DataRange newDataRange = new DataRange(Float.parseFloat(configInfo[3]), Float.parseFloat(configInfo[4]));//min,max

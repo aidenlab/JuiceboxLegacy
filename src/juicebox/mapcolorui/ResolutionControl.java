@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import juicebox.HiCGlobals;
 import juicebox.data.MatrixZoomData;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.HiCZoom;
-import juicebox.windowui.MatrixType;
 import org.broad.igv.ui.FontManager;
 import org.broad.igv.ui.util.MessageUtils;
 
@@ -60,11 +59,11 @@ public class ResolutionControl extends JPanel {
     private final JLabel resolutionLabel;
     private final Map<Integer, HiCZoom> idxZoomMap = new ConcurrentHashMap<Integer, HiCZoom>();
     private final Map<Integer, String> bpLabelMap;
+    private final HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
     public HiC.Unit unit = HiC.Unit.BP;
     private boolean resolutionLocked = false;
     private JSlider resolutionSlider;
     private int lastValue = 0;
-    private HiCZoom pearsonZoom = new HiCZoom(HiC.Unit.BP, 500000);
 
     {
         bpLabelMap = new Hashtable<Integer, String>();
@@ -93,6 +92,7 @@ public class ResolutionControl extends JPanel {
         resolutionLabelPanel.setLayout(new BorderLayout());
         resolutionLabelPanel.add(resolutionLabel, BorderLayout.CENTER);
 
+        // TODO not working
         // supposed to underline "resolution text" but why? is this an important gui issue?
         resolutionLabelPanel.addMouseListener(new MouseAdapter() {
             private Font original;
@@ -217,7 +217,7 @@ public class ResolutionControl extends JPanel {
                 if (zoom.getBinSize() == hic.getXContext().getZoom().getBinSize() &&
                         zoom.getUnit() == hic.getXContext().getZoom().getUnit()) return;
 
-                if (zoom.getBinSize() < 500000 && hic.getDisplayOption() == MatrixType.PEARSON) {
+                if (zoom.getBinSize() < HiCGlobals.MAX_PEARSON_ZOOM && hic.isInPearsonsMode()) {
                     MessageUtils.showMessage("Pearson's matrix is not available at this resolution,\n" +
                             "please use a resolution lower than 500 KB.");
                     setZoom(pearsonZoom);
@@ -235,14 +235,14 @@ public class ResolutionControl extends JPanel {
 
                     // this to center zooming when there is lots of whitespace in the margins
                     try {
-                        if (heatmapPanel.getWidth() > hic.getZd().getXGridAxis().getBinCount() / hic.getScaleFactor()) {
+                        if (scaledXWidth > hic.getZd().getXGridAxis().getBinCount()) {
                             xGenome = hic.getXContext().getChrLength() / 2;
                         }
                     } catch (Exception ee) {
                     }
 
                     try {
-                        if (heatmapPanel.getHeight() > hic.getZd().getYGridAxis().getBinCount() / hic.getScaleFactor()) {
+                        if (scaledYHeight > hic.getZd().getYGridAxis().getBinCount()) {
                             yGenome = hic.getYContext().getChrLength() / 2;
                         }
                     } catch (Exception ee) {
@@ -348,7 +348,10 @@ public class ResolutionControl extends JPanel {
     }
 
     public void setZoom(HiCZoom newZoom) {
-        unit = newZoom.getUnit();
+        if (unit != newZoom.getUnit()) {
+            unit = newZoom.getUnit();
+            reset();
+        }
         resolutionLabel.setText(getUnitLabel());
         resolutionLabel.setForeground(Color.BLUE);
         for (Map.Entry<Integer, HiCZoom> entry : idxZoomMap.entrySet()) {

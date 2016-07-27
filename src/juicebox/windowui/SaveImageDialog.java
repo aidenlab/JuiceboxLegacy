@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,54 +24,77 @@
 
 package juicebox.windowui;
 
+import de.erichseifert.vectorgraphics2d.PDFGraphics2D;
+import de.erichseifert.vectorgraphics2d.ProcessingPipeline;
+import de.erichseifert.vectorgraphics2d.SVGGraphics2D;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 
 public class SaveImageDialog extends JFileChooser {
     private static final long serialVersionUID = -611947177404923808L;
     private JTextField width;
     private JTextField height;
 
-    public SaveImageDialog(String saveImagePath, HiC hic, JPanel hiCPanel) {
+    public SaveImageDialog(String saveImagePath, final HiC hic, final MainWindow mainWindow, final JPanel hiCPanel,
+                           final String extension) {
         super();
         if (saveImagePath != null) {
             setSelectedFile(new File(saveImagePath));
         } else {
             String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-            setSelectedFile(new File(timeStamp + ".HiCImage.png"));
+            setSelectedFile(new File(timeStamp + ".HiCImage" + extension));
+
         }
         if (HiCGlobals.guiIsCurrentlyActive) {
-            MainWindow mainWindow = MainWindow.getInstance();
             int actionDialog = showSaveDialog(mainWindow);
             if (actionDialog == JFileChooser.APPROVE_OPTION) {
-                File file = getSelectedFile();
+                File selectedFile = getSelectedFile();
+                final File outputFile;
+                if (selectedFile.getPath().endsWith(".svg") || selectedFile.getPath().endsWith(".SVG")
+                        || selectedFile.getPath().endsWith(".pdf") || selectedFile.getPath().endsWith(".PDF")) {
+                    outputFile = selectedFile;
+                } else {
+                    outputFile = new File(selectedFile + extension);
+                }
                 //saveImagePath = file.getPath();
-                if (file.exists()) {
+                if (outputFile.exists()) {
                     actionDialog = JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Replace existing file?");
                     if (actionDialog == JOptionPane.NO_OPTION || actionDialog == JOptionPane.CANCEL_OPTION)
                         return;
                 }
-                try {
-                    int w = Integer.valueOf(width.getText());
-                    int h = Integer.valueOf(height.getText());
-                    saveImage(file, mainWindow, hic, hiCPanel, w, h);
-                } catch (IOException error) {
-                    JOptionPane.showMessageDialog(mainWindow, "Error while saving file:\n" + error, "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                } catch (NumberFormatException error) {
-                    JOptionPane.showMessageDialog(mainWindow, "Width and Height must be integers", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
+
+                mainWindow.executeLongRunningTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            int w = Integer.valueOf(width.getText());
+                            int h = Integer.valueOf(height.getText());
+                            if (HiCGlobals.printVerboseComments) System.out.println("Exporting another figure");
+                            if (outputFile.getPath().endsWith(".svg") || outputFile.getPath().endsWith(".SVG")) {
+                                exportAsSVG(outputFile, mainWindow, hic, hiCPanel, w, h);
+                            } else {
+                                exportAsPDF(outputFile, mainWindow, hic, hiCPanel, w, h);
+                            }
+
+                        } catch (IOException error) {
+                            JOptionPane.showMessageDialog(mainWindow, "Error while saving file:\n" + error, "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        } catch (NumberFormatException error) {
+                            JOptionPane.showMessageDialog(mainWindow, "Width and Height must be integers", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }, "Exporting Figure", "Exporting...");
             }
         }
     }
@@ -93,25 +116,42 @@ public class SaveImageDialog extends JFileChooser {
         return myDialog;
     }
 
-    private void saveImage(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel, final int w, final int h) throws IOException {
-
-        // default if they give no format or invalid format
-        String fmt = "jpg";
-        int ind = file.getName().indexOf(".");
-        if (ind != -1) {
-            String ext = file.getName().substring(ind + 1);
-            String[] strs = ImageIO.getWriterFormatNames();
-            for (String aStr : strs)
-                if (ext.equals(aStr))
-                    fmt = ext;
+    private void exportAsPDF(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
+                             final int w, final int h) throws IOException {
+        try {
+            PDFGraphics2D g = new PDFGraphics2D(0, 0, w, h);
+            plotDataOnGraphics(g, mainWindow, w, h, hic, hiCPanel);
+            writeGraphicsToFile(g, file);
+        } catch (Exception e) {
+            System.err.println("Export PDF failed " + e);
         }
-        BufferedImage image = (BufferedImage) MainWindow.getInstance().createImage(w, h);
-        Graphics g = image.createGraphics();
+    }
 
-        Dimension size = MainWindow.getInstance().getSize();
+    private void exportAsSVG(File file, MainWindow mainWindow, HiC hic, final JPanel hiCPanel,
+                             final int w, final int h) throws IOException {
+        try {
+            SVGGraphics2D g = new SVGGraphics2D(0, 0, w, h);
+            plotDataOnGraphics(g, mainWindow, w, h, hic, hiCPanel);
+            writeGraphicsToFile(g, file);
+        } catch (Exception e) {
+            System.err.println("Export SVG failed " + e);
+        }
+    }
 
-        if (w == mainWindow.getWidth() && h == MainWindow.getInstance().getHeight()) {
-            hiCPanel.paint(g);
+    private void writeGraphicsToFile(ProcessingPipeline g, File file) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        try {
+            fileOutputStream.write(g.getBytes());
+        } finally {
+            fileOutputStream.close();
+        }
+    }
+
+    private void plotDataOnGraphics(Graphics g, final MainWindow mainWindow, final int w, final int h, final HiC hic,
+                                    final JPanel hiCPanel) {
+        // Print the panel on created graphics.
+        if (w == mainWindow.getWidth() && h == mainWindow.getHeight()) {
+            hiCPanel.printAll(g);
         } else {
             JDialog waitDialog = new JDialog();
             JPanel panel1 = new JPanel();
@@ -147,29 +187,22 @@ public class SaveImageDialog extends JFileChooser {
 
             Thread thread = new Thread(painter) {
                 public void run() {
-
                     try {
                         SwingUtilities.invokeAndWait(painter);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-
                 }
             };
 
             thread.start();
-
-            hiCPanel.paint(g);
+            hiCPanel.printAll(g);
             mainWindow.setPreferredSize(prefSize);
             mainWindow.setMinimumSize(minSize);
-            mainWindow.setSize(size);
+            mainWindow.setSize(new Dimension(w, h));
             waitDialog.setVisible(false);
             waitDialog.dispose();
             mainWindow.setVisible(true);
         }
-
-        ImageIO.write(image.getSubimage(0, 0, w, h), fmt, file);
-        g.dispose();
     }
-
 }

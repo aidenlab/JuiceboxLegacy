@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.clt.juicer;
 
-import jargs.gnu.CmdLineParser;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.data.Dataset;
@@ -42,13 +41,15 @@ import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
 import org.broad.igv.feature.Chromosome;
 
-import java.io.PrintWriter;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Arrowhead
  * <p/>
- * Developed by Neva Durand
+ * Developed by Miriam Huntley and Neva Durand
  * Implemented by Muhammad Shamim
  * <p/>
  * -------
@@ -105,37 +106,38 @@ import java.util.*;
 public class Arrowhead extends JuicerCLT {
 
     private static int matrixSize = 2000;
+    private File outputDirectory;
     private boolean configurationsSetByUser = false;
-    private Set<String> givenChromosomes = null;
     private boolean controlAndListProvided = false;
     private String featureList, controlList;
-
     // must be passed via command line
     private int resolution = 10000;
-    private String file, outputPath;
+    private String hicFile;
+    private boolean checkMapDensityThreshold = true;
 
     public Arrowhead() {
         super("arrowhead [-c chromosome(s)] [-m matrix size] [-r resolution] [-k normalization (NONE/VC/VC_SQRT/KR)] " +
-                "<HiC file(s)> <output_file> [feature_list] [control_list]");
+                "[--ignore_sparsity flag] <hicFile(s)> <output_file> [feature_list] [control_list]");
         HiCGlobals.useCache = false;
     }
 
-    @Override
-    public void readArguments(String[] args, CmdLineParser parser) {
+    public static String getBasicUsage() {
+        return "arrowhead <hicFile(s)> <output_file>";
+    }
 
-        CommandLineParserForJuicer juicerParser = (CommandLineParserForJuicer) parser;
+    @Override
+    protected void readJuicerArguments(String[] args, CommandLineParserForJuicer juicerParser) {
         if (args.length != 3 && args.length != 5) {
             // 3 - standard, 5 - when list/control provided
-            printUsage();
-            System.exit(0);
+            printUsageAndExit();  // this will exit
         }
 
         NormalizationType preferredNorm = juicerParser.getNormalizationTypeOption();
         if (preferredNorm != null)
             norm = preferredNorm;
 
-        file = args[1];
-        outputPath = args[2];
+        hicFile = args[1];
+        outputDirectory = HiCFileTools.createValidDirectory(args[2]);
 
         List<String> potentialResolution = juicerParser.getMultipleResolutionOptions();
         if (potentialResolution != null) {
@@ -149,40 +151,53 @@ public class Arrowhead extends JuicerCLT {
             controlList = args[4];
         }
 
-        List<String> potentialChromosomes = juicerParser.getChromosomeOption();
-        if (potentialChromosomes != null) {
-            givenChromosomes = new HashSet<String>(potentialChromosomes);
-        }
-
         int specifiedMatrixSize = juicerParser.getMatrixSizeOption();
         if (specifiedMatrixSize > 1) {
             matrixSize = specifiedMatrixSize;
         }
-    }
 
+        if (juicerParser.getBypassMinimumMapCountCheckOption()) {
+            checkMapDensityThreshold = false;
+        }
+    }
 
     @Override
     public void run() {
+        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(hicFile.split("\\+")), true);
 
-        Dataset ds = HiCFileTools.extractDatasetForCLT(Arrays.asList(file.split("\\+")), true);
+        try {
+            final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
+            double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
+            // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
+            // then the map had more than 300M contacts.
+            // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
+            if (HiCGlobals.printVerboseComments) {
+                System.err.println("First expected is " + firstExpected);
+            }
 
-        final ExpectedValueFunction df = ds.getExpectedValues(new HiCZoom(HiC.Unit.BP, 2500000), NormalizationType.NONE);
-        double firstExpected = df.getExpectedValues()[0]; // expected value on diagonal
-        // From empirical testing, if the expected value on diagonal at 2.5Mb is >= 100,000
-        // then the map had more than 300M contacts.
-        // If map has less than 300M contacts, we will not run Arrowhead or HiCCUPs
-        if (firstExpected < 100000) {
-            System.err.println("HiC contact map is too sparse to run Arrowhead, exiting.");
-            System.exit(0);
-        }
+            if (firstExpected < 100000) {
+                System.err.println("Warning: Hi-C map is too sparse to find many domains via Arrowhead.");
+                if (checkMapDensityThreshold) {
+                    System.err.println("Exiting. To disable sparsity check, use the --ignore_sparsity flag.");
+                    System.exit(4);
+                }
+            }
 
-        // high quality (IMR90, GM12878) maps have different settings
-        if (!configurationsSetByUser) {
-            matrixSize = 2000;
-            if (firstExpected > 250000) {
-                resolution = 5000;
-                System.out.println("Default settings for 5kb being used");
-            } else {
+            // high quality (IMR90, GM12878) maps have different settings
+            if (!configurationsSetByUser) {
+                matrixSize = 2000;
+                if (firstExpected > 250000) {
+                    resolution = 5000;
+                    System.out.println("Default settings for 5kb being used");
+                } else {
+                    resolution = 10000;
+                    System.out.println("Default settings for 10kb being used");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Unable to assess map sparsity; continuing with HiCCUPS");
+            if (!configurationsSetByUser) {
+                matrixSize = 2000;
                 resolution = 10000;
                 System.out.println("Default settings for 10kb being used");
             }
@@ -201,12 +216,12 @@ public class Arrowhead extends JuicerCLT {
             inputControl.add(Feature2DParser.loadFeatures(controlList, chromosomes, true, null, false));
         }
 
-        PrintWriter outputBlockFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_blocks");
-        PrintWriter outputListFile = null;
-        PrintWriter outputControlFile = null;
+        File outputBlockFile = new File(outputDirectory, resolution + "_blocks");
+        File outputListFile = null;
+        File outputControlFile = null;
         if (controlAndListProvided) {
-            outputListFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_list_scores");
-            outputControlFile = HiCFileTools.openWriter(outputPath + "_" + resolution + "_control_scores");
+            outputListFile = new File(outputDirectory, resolution + "_list_scores");
+            outputControlFile = new File(outputDirectory, resolution + "_control_scores");
         }
 
         // chromosome filtering must be done after input/control created
@@ -243,12 +258,12 @@ public class Arrowhead extends JuicerCLT {
         }
 
         // save the data on local machine
-        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, true, "arrowhead");
+        contactDomainsGenomeWide.exportFeatureList(outputBlockFile, true, Feature2DList.ListFormat.ARROWHEAD);
         System.out.println(contactDomainsGenomeWide.getNumTotalFeatures() + " domains written to file: " +
-                outputPath + "_" + resolution + "_blocks");
+                outputBlockFile.getAbsolutePath());
         if (controlAndListProvided) {
-            contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false, "NA");
-            contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false, "NA");
+            contactDomainListScoresGenomeWide.exportFeatureList(outputListFile, false, Feature2DList.ListFormat.NA);
+            contactDomainControlScoresGenomeWide.exportFeatureList(outputControlFile, false, Feature2DList.ListFormat.NA);
         }
         System.out.println("Arrowhead complete");
     }

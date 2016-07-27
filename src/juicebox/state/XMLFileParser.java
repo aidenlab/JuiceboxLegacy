@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,14 +46,14 @@ class XMLFileParser {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
-            dom = db.parse(HiCGlobals.xmlSavedStatesFileName);
+            dom = db.parse(HiCGlobals.xmlSavedStatesFile.getAbsolutePath());
 
             //validate
             dbf.setValidating(false);
             dbf.setNamespaceAware(true);
             DocumentBuilder builder = dbf.newDocumentBuilder();
             builder.setErrorHandler(new SimpleErrorHandler());
-            builder.parse(new InputSource(HiCGlobals.xmlSavedStatesFileName));
+            builder.parse(new InputSource(HiCGlobals.xmlSavedStatesFile.getAbsolutePath()));
             dom.getDocumentElement();
 
 

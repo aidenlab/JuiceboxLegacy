@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ public class GenomeWideList<T extends Feature> {
      * Genome-wide list of features, where each string is a key for an
      * inter or intra-chromosomal region
      */
-    private Map<String, List<T>> featureLists = new HashMap<String, List<T>>();
+    private final Map<String, List<T>> featureLists = new HashMap<String, List<T>>();
 
     /** Constructors**/
 
@@ -51,7 +51,7 @@ public class GenomeWideList<T extends Feature> {
     /**
      * @param chromosomes for genome
      */
-    public GenomeWideList(List<Chromosome> chromosomes) {
+    private GenomeWideList(List<Chromosome> chromosomes) {
         for (Chromosome chr : chromosomes) {
             featureLists.put("" + chr.getIndex(), new ArrayList<T>());
         }
@@ -81,6 +81,15 @@ public class GenomeWideList<T extends Feature> {
         this(HiCFileTools.loadChromosomes(genomeID), features);
     }
 
+    /**
+     * Basic methods/functions
+     */
+
+    /**
+     * Initialize a genome wide list using an existing list (creates deep copy)
+     *
+     * @param gwList
+     */
     public GenomeWideList(final GenomeWideList<T> gwList) {
         processLists(new FeatureFunction<T>() {
             @Override
@@ -91,10 +100,6 @@ public class GenomeWideList<T extends Feature> {
             }
         });
     }
-
-    /**
-     * Basic methods/functions
-     */
 
     /**
      * @param key
@@ -132,7 +137,7 @@ public class GenomeWideList<T extends Feature> {
     }
 
     /**
-     * @param features to be added to this list
+     * @param features to be added to this list (deep copy)
      */
     @SuppressWarnings("unchecked")
     private void addAll(List<T> features) {
@@ -152,6 +157,8 @@ public class GenomeWideList<T extends Feature> {
         }
     }
 
+    /** methods to create copies **/
+
     /**
      * pass interface implementing a process for all anchors
      *
@@ -162,8 +169,6 @@ public class GenomeWideList<T extends Feature> {
             function.process(key, featureLists.get(key));
         }
     }
-
-    /** methods to create copies **/
 
     /**
      * @return deep copy of the anchor list
@@ -189,10 +194,19 @@ public class GenomeWideList<T extends Feature> {
         return clonedFeatures;
     }
 
+    /**
+     * @return set of keys for genome-wide regions (i.e. category/location keys)
+     */
     public Set<String> keySet() {
         return featureLists.keySet();
     }
 
+    /**
+     * Add feature to genome-wide list with specified key
+     *
+     * @param key
+     * @param feature
+     */
     public void addFeature(String key, T feature) {
         if (featureLists.containsKey(key)) {
             featureLists.get(key).add(feature);

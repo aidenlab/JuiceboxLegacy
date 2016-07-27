@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 package juicebox.tools.utils.original;
 
+import juicebox.HiC;
 import juicebox.data.ExpectedValueFunctionImpl;
 import juicebox.windowui.NormalizationType;
 import org.broad.igv.Globals;
@@ -104,10 +105,25 @@ public class ExpectedValueCalculation {
         for (Chromosome chr : chromosomeList) {
             if (chr != null && !chr.getName().equals(Globals.CHR_ALL)) {
                 chromosomes.put(chr.getIndex(), chr);
-                assert fragmentCountMap != null;
-                maxLen = isFrag ?
-                        Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
-                        Math.max(maxLen, chr.getLength());
+                try {
+                    maxLen = isFrag ?
+                            Math.max(maxLen, fragmentCountMap.get(chr.getName())) :
+                            Math.max(maxLen, chr.getLength());
+                }
+                catch (NullPointerException error) {
+                    System.err.println("Problem with creating fragment-delimited maps, NullPointerException.\n" +
+                            "This could be due to a null fragment map or to a mismatch in the chromosome name in " +
+                            "the fragment map vis-a-vis the input file or chrom.sizes file.\n" +
+                            "Exiting.");
+                    System.exit(63);
+                }
+                catch (ArrayIndexOutOfBoundsException error) {
+                    System.err.println("Problem with creating fragment-delimited maps, ArrayIndexOutOfBoundsException.\n" +
+                            "This could be due to a null fragment map or to a mismatch in the chromosome name in " +
+                            "the fragment map vis-a-vis the input file or chrom.sizes file.\n" +
+                            "Exiting.");
+                    System.exit(22);
+                }
             }
         }
 
@@ -149,7 +165,7 @@ public class ExpectedValueCalculation {
      */
     public void addDistance(Integer chrIdx, int bin1, int bin2, double weight) {
 
-        // Ignore NaN values
+        // Ignore NaN values    TODO -- is this the right thing to do?
         if (Double.isNaN(weight)) return;
 
         int dist;
@@ -308,7 +324,7 @@ public class ExpectedValueCalculation {
 
     public ExpectedValueFunctionImpl getExpectedValueFunction() {
         computeDensity();
-        return new ExpectedValueFunctionImpl(type, isFrag ? "FRAG" : "BP", gridSize, densityAvg, chrScaleFactors);
+        return new ExpectedValueFunctionImpl(type, isFrag ? HiC.Unit.FRAG : HiC.Unit.BP, gridSize, densityAvg, chrScaleFactors);
     }
 }
 

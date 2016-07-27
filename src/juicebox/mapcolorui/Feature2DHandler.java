@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.List;
 
 /**
+ * Handles 2D features such as domains and peaks
  * Created by muhammadsaadshamim on 8/6/15.
  */
 public class Feature2DHandler {
@@ -80,10 +81,6 @@ public class Feature2DHandler {
         int w = (int) Math.max(1, scaleFactor * (binEnd1 - binStart1)) + offsetDoubled;
         int h = (int) Math.max(1, scaleFactor * (binEnd2 - binStart2)) + offsetDoubled;
 
-        if (feature.getTest()) {
-//            System.out.println("  Pixel data (1): " + x + ", " + (x + w));
-//            System.out.println("  Pixel data (2): " + y + ", " + (y + h));
-        }
 
         return new Rectangle(x, y, w, h);
     }
@@ -280,6 +277,32 @@ public class Feature2DHandler {
         }
 
         return featurePairs;
+    }
+
+    public List<Feature2D> findContainedFeatures(int chrIdx1, int chrIdx2, net.sf.jsi.Rectangle currentWindow) {
+        final List<Feature2D> foundFeatures = new ArrayList<Feature2D>();
+        final String key = Feature2DList.getKey(chrIdx1, chrIdx2);
+
+        if (featureRtrees.containsKey(key)) {
+
+            featureRtrees.get(key).contains(
+                    currentWindow,      // the window in which we want to find all rectangles
+                    new TIntProcedure() {         // a procedure whose execute() method will be called with the results
+                        public boolean execute(int i) {
+                            Feature2D feature = allFeaturesAcrossGenome.get(key).get(i);
+                            //System.out.println(feature.getChr1() + "\t" + feature.getStart1() + "\t" + feature.getStart2());
+                            foundFeatures.add(feature);
+                            return true;              // return true here to continue receiving results
+                        }
+                    }
+            );
+
+        } else {
+            List<Feature2D> features = allFeaturesAcrossGenome.get(key);
+            if (features != null) foundFeatures.addAll(features);
+        }
+
+        return foundFeatures;
     }
 
     private net.sf.jsi.Point getGenomicPointFromXYCoordinate(double x, double y, HiCGridAxis xAxis, HiCGridAxis yAxis,

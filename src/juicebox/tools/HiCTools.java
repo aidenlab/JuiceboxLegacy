@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,21 +41,21 @@ import java.io.IOException;
  * @author Muhammad Shamim
  * @date 1/20/2015
  */
-public class HiCTools {
+class HiCTools {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);
 
         if (argv.length == 0) {
             CLTFactory.generalUsage();
-            System.exit(0);
+            System.exit(42);
         }
         String cmdName = argv[0].toLowerCase();
 
         CmdLineParser parser = new CommandLineParser();
         if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
             parser = new CommandLineParserForJuicer();
-            HiCGlobals.useCache = false;
+            HiCGlobals.useCache = false; //TODO until memory leak cleared
         }
 
         parser.parse(argv);
@@ -71,8 +71,7 @@ public class HiCTools {
         }
         if (instanceOfCLT != null) {
             if (args.length == 1) {
-                instanceOfCLT.printUsage();
-                System.exit(0);
+                instanceOfCLT.printUsageAndExit();
             }
             instanceOfCLT.readArguments(args, parser);
             instanceOfCLT.run();

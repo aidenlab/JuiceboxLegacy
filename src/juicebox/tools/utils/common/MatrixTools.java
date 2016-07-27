@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -434,6 +434,22 @@ public class MatrixTools {
     }
 
     /**
+     * @return min element in matrix
+     */
+    public static double calculateMin(RealMatrix matrix) {
+        double min = matrix.getEntry(0, 0);
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                double val = matrix.getEntry(i, j);
+                if (min > val) {
+                    min = val;
+                }
+            }
+        }
+        return min;
+    }
+
+    /**
      * print for matrix
      */
     public static void print(RealMatrix matrix) {
@@ -488,6 +504,19 @@ public class MatrixTools {
         }
     }
 
+    public static void thresholdValuesDouble(RealMatrix matrix, double lowVal, double highVal) {
+        for (int i = 0; i < matrix.getRowDimension(); i++) {
+            for (int j = 0; j < matrix.getColumnDimension(); j++) {
+                if (matrix.getEntry(i, j) > highVal) {
+                    matrix.setEntry(i, j, highVal);
+                }
+                if (matrix.getEntry(i, j) < lowVal) {
+                    matrix.setEntry(i, j, lowVal);
+                }
+            }
+        }
+    }
+
     public static int[][] normalizeMatrixUsingColumnSum(int[][] matrix) {
         int[][] newMatrix = new int[matrix.length][matrix[0].length];
         int[] columnSum = new int[matrix[0].length];
@@ -522,5 +551,14 @@ public class MatrixTools {
         }
 
         return newMatrix;
+    }
+
+    public static RealMatrix cleanUpNaNs(RealMatrix matrix) {
+        for (int r = 0; r < matrix.getRowDimension(); r++)
+            for (int c = 0; c < matrix.getColumnDimension(); c++)
+                if (Double.isNaN(matrix.getEntry(r, c))) {
+                    matrix.setEntry(r, c, 0);
+                }
+        return matrix;
     }
 }

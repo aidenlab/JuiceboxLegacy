@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,9 @@
 
 package juicebox.gui;
 
+import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.ProcessHelper;
-import juicebox.data.HiCFileTools;
 import juicebox.mapcolorui.Feature2DHandler;
 import juicebox.mapcolorui.FeatureRenderer;
 import juicebox.state.SaveFileDialog;
@@ -34,6 +34,7 @@ import juicebox.track.LoadAction;
 import juicebox.track.LoadEncodeAction;
 import juicebox.track.feature.CustomAnnotation;
 import juicebox.track.feature.CustomAnnotationHandler;
+import juicebox.windowui.HiCRulerPanel;
 import juicebox.windowui.RecentMenu;
 import org.apache.log4j.Logger;
 
@@ -45,9 +46,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * Created by muhammadsaadshamim on 8/4/15.
- */
 public class MainMenuBar {
     private static final int recentMapListMaxItems = 10;
     private static final int recentLocationMaxItems = 20;
@@ -61,12 +59,12 @@ public class MainMenuBar {
     public static CustomAnnotation customAnnotations;
     public static CustomAnnotationHandler customAnnotationHandler;
     private static JMenuItem loadLastMI;
-    private static RecentMenu recentMapMenu;
+    private static RecentMenu recentMapMenu, recentControlMapMenu;
     private static RecentMenu recentLocationMenu;
     private static JMenuItem saveLocationList;
     private static JMenuItem saveStateForReload;
     private static RecentMenu previousStates;
-    private static JMenuItem exportMapAsFile;
+    private static JMenuItem exportSavedStateMenuItem;
     private static JMenuItem importMapAsFile;
     private static JMenuItem slideShow;
     private static File temp;
@@ -74,7 +72,6 @@ public class MainMenuBar {
     private static JMenu annotationsMenu;
     private static LoadEncodeAction encodeAction;
     private static LoadAction trackLoadAction;
-    private final File fileForExport = new File(HiCGlobals.xmlSavedStatesFileName);
     // created separately because it will be enabled after an initial map is loaded
     private final JMenuItem loadControlFromList = new JMenuItem();
     private File currentStates = new File("testStates");
@@ -90,13 +87,14 @@ public class MainMenuBar {
 
     public boolean unsavedEditsExist() {
         String tempPath = "/unsaved-hiC-annotations1";
-        temp = HiCFileTools.openTempFile(tempPath);
+        temp = new File(DirectoryManager.getHiCDirectory(), tempPath + ".txt");
         unsavedEdits = temp.exists();
         return unsavedEdits;
     }
 
     public void addRecentMapMenuEntry(String title, boolean status) {
         recentMapMenu.addEntry(title, status);
+        recentControlMapMenu.addEntry(title, status);
     }
 
     public void addRecentStateMenuEntry(String title, boolean status) {
@@ -123,8 +121,7 @@ public class MainMenuBar {
                 ProcessHelper p = new ProcessHelper();
                 try {
                     p.startNewJavaProcess();
-                }
-                catch (IOException error) {
+                } catch (IOException error) {
                     superAdapter.launchGenericMessageDialog(error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -135,7 +132,7 @@ public class MainMenuBar {
         //---- openMenuItem ----
 
         // create control first because it is enabled by regular open
-        loadControlFromList.setText("Open Control...");
+        loadControlFromList.setText("Open as Control...");
         loadControlFromList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 superAdapter.loadFromListActionPerformed(true);
@@ -152,7 +149,7 @@ public class MainMenuBar {
         fileMenu.add(openItem);
         fileMenu.add(loadControlFromList);
 
-        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP, false) {
+        recentMapMenu = new RecentMenu("Open Recent", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
 
             private static final long serialVersionUID = 4202L;
 
@@ -166,8 +163,23 @@ public class MainMenuBar {
         };
         recentMapMenu.setMnemonic('R');
 
-
         fileMenu.add(recentMapMenu);
+
+        recentControlMapMenu = new RecentMenu("Open Recent as Control", recentMapListMaxItems, recentMapEntityNode, HiCGlobals.menuType.MAP) {
+
+            private static final long serialVersionUID = 42012L;
+
+            public void onSelectPosition(String mapPath) {
+                String delimiter = "@@";
+                String[] temp;
+                temp = mapPath.split(delimiter);
+                //initProperties();         // don't know why we're doing this here
+                superAdapter.loadFromRecentActionPerformed((temp[1]), (temp[0]), true);
+            }
+        };
+        //recentControlMapMenu.setMnemonic('r');
+        recentControlMapMenu.setEnabled(false);
+        fileMenu.add(recentControlMapMenu);
         fileMenu.addSeparator();
 
         JMenuItem showStats = new JMenuItem("Show Dataset Metrics");
@@ -182,15 +194,8 @@ public class MainMenuBar {
         fileMenu.add(showStats);
         fileMenu.addSeparator();
 
-        JMenuItem saveToImage = new JMenuItem();
-        saveToImage.setText("Export Image...");
-        saveToImage.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                superAdapter.launchExportImage();
-            }
-        });
-        fileMenu.add(saveToImage);
 
+        // TODO: make this an export of the data on screen instead of a GUI for CLT
         if (!HiCGlobals.isRestricted) {
             JMenuItem dump = new JMenuItem("Export Data...");
             dump.addActionListener(new ActionListener() {
@@ -268,9 +273,8 @@ public class MainMenuBar {
         loadEncodeMI.setAction(encodeAction);
         annotationsMenu.add(loadEncodeMI);
 
-        JMenuItem loadFromURLItem = new JMenuItem("Load Annotation from URL...");
+        JMenuItem loadFromURLItem = new JMenuItem("Load 1D Annotation from URL...");
         loadFromURLItem.addActionListener(new AbstractAction() {
-
             private static final long serialVersionUID = 4203L;
 
             @Override
@@ -278,6 +282,7 @@ public class MainMenuBar {
                 superAdapter.loadFromURLActionPerformed();
             }
         });
+        annotationsMenu.add(loadFromURLItem);
 
         final JMenu feature2DPlottingOptions = new JMenu("2D Annotations");
         showLoopsItem = new JCheckBoxMenuItem("Show");
@@ -334,8 +339,6 @@ public class MainMenuBar {
         featureRenderingOptions.add(renderURFeatureItem);
 
 
-
-
         final JCheckBoxMenuItem enlarge2DFeatures = new JCheckBoxMenuItem("Enlarge");
         enlarge2DFeatures.setSelected(false);
         enlarge2DFeatures.addActionListener(new ActionListener() {
@@ -345,7 +348,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        enlarge2DFeatures.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, 0));
+        enlarge2DFeatures.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0));
 
         final JCheckBoxMenuItem toggle2DFeatureOpacity = new JCheckBoxMenuItem("Translucent");
         toggle2DFeatureOpacity.setSelected(false);
@@ -356,7 +359,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, 0));
+        toggle2DFeatureOpacity.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
 
         final JCheckBoxMenuItem showCustomLoopsItem = new JCheckBoxMenuItem("Show");
 
@@ -403,7 +406,7 @@ public class MainMenuBar {
             }
         });
         toggleSparse2DFeaturePlotting.setToolTipText("Plot a limited number of 2D annotations at a time\n(speed up plotting when there are many annotations).");
-        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));
+        toggleSparse2DFeaturePlotting.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
 
         final JTextField numSparse = new JTextField("" + Feature2DHandler.numberOfLoopsToFind);
         numSparse.setEnabled(true);
@@ -432,7 +435,7 @@ public class MainMenuBar {
 
         // use hidden hotkey instead of plot sparse button
 
-        superAdapter.getMainWindow().getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+        superAdapter.getMainWindow().getRootPane().getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F7,
                 java.awt.event.InputEvent.CTRL_DOWN_MASK), "actionMapKeySparse");
         superAdapter.getMainWindow().getRootPane().getActionMap().put("actionMapKeySparse", new AbstractAction() {
 
@@ -453,7 +456,7 @@ public class MainMenuBar {
         // Annotations Menu Items
         final JMenu customAnnotationMenu = new JMenu("Hand Annotations");
         exportAnnotationsMI = new JMenuItem("Export...");
-        final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
+        //final JMenuItem exportOverlapMI = new JMenuItem("Export Overlap...");
         loadLastMI = new JMenuItem("Load Last Session");
         undoMenuItem = new JMenuItem("Undo Annotation");
         final JMenuItem clearCurrentMI = new JMenuItem("Clear All");
@@ -466,12 +469,12 @@ public class MainMenuBar {
             }
         });
 
-        exportOverlapMI.addActionListener(new ActionListener() {
+        /*exportOverlapMI.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 superAdapter.exportOverlapMIAction(customAnnotations);
             }
-        });
+        });*/
 
         loadLastMI.addActionListener(new ActionListener() {
             @Override
@@ -489,6 +492,7 @@ public class MainMenuBar {
                 int n = superAdapter.clearCustomAnnotationDialog();
 
                 if (n == JOptionPane.YES_OPTION) {
+                    //TODO: do something with the saving... just update temp?
                     customAnnotations.clearAnnotations();
                     exportAnnotationsMI.setEnabled(false);
                     loadLastMI.setEnabled(false);
@@ -504,7 +508,7 @@ public class MainMenuBar {
                 superAdapter.repaint();
             }
         });
-        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
+        undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 
         //Add annotate menu items
         customAnnotationMenu.add(showCustomLoopsItem);
@@ -522,6 +526,8 @@ public class MainMenuBar {
         undoMenuItem.setEnabled(false);
 
         annotationsMenu.add(customAnnotationMenu);
+        // TODO: Semantic inconsistency between what user sees (loop) and back end (peak) -- same thing.
+
 
         JMenu bookmarksMenu = new JMenu("Bookmarks");
         //---- Save location ----
@@ -532,9 +538,9 @@ public class MainMenuBar {
                 //code to add a recent location to the menu
                 String stateString = superAdapter.getLocationDescription();
                 String stateDescription = superAdapter.getDescription("location");
-                if (null != stateDescription && stateDescription.length() > 0) {
+                if (stateDescription != null && stateDescription.length() > 0) {
                     superAdapter.addRecentStateMenuEntry(stateDescription + "@@" + stateString, true);
-                        recentLocationMenu.setEnabled(true);
+                    recentLocationMenu.setEnabled(true);
                 }
             }
         });
@@ -547,17 +553,17 @@ public class MainMenuBar {
 
             public void actionPerformed(ActionEvent e) {
                 //code to add a recent location to the menu
-                try{
-                String stateDescription = superAdapter.getDescription("state");
-                if (stateDescription != null && stateDescription.length() > 0) {
-                    stateDescription = previousStates.checkForDuplicateNames(stateDescription);
-                    if (stateDescription == null || stateDescription.length() < 0) {
-                        return;
+                try {
+                    String stateDescription = superAdapter.getDescription("state");
+                    if (stateDescription != null && stateDescription.length() > 0) {
+                        stateDescription = previousStates.checkForDuplicateNames(stateDescription);
+                        if (stateDescription == null || stateDescription.length() < 0) {
+                            return;
+                        }
+                        previousStates.addEntry(stateDescription, true);
+                        superAdapter.addNewStateToXML(stateDescription);
+                        previousStates.setEnabled(true);
                     }
-                    previousStates.addEntry(stateDescription, true);
-                    superAdapter.addNewStateToXML(stateDescription);
-                }
-                    previousStates.setEnabled(true);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
@@ -567,7 +573,7 @@ public class MainMenuBar {
         saveStateForReload.setEnabled(false);
         bookmarksMenu.add(saveStateForReload);
 
-        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION, true) {
+        recentLocationMenu = new RecentMenu("Restore saved location", recentLocationMaxItems, recentLocationEntityNode, HiCGlobals.menuType.LOCATION) {
 
             private static final long serialVersionUID = 4204L;
 
@@ -584,7 +590,18 @@ public class MainMenuBar {
         recentLocationMenu.setEnabled(false);
         bookmarksMenu.add(recentLocationMenu);
 
-        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE, true) {
+        //---Export States----
+        exportSavedStateMenuItem = new JMenuItem();
+        exportSavedStateMenuItem.setText("Export Saved States");
+        exportSavedStateMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new SaveFileDialog(HiCGlobals.xmlSavedStatesFile);
+            }
+        });
+
+        // restore recent saved states
+        previousStates = new RecentMenu("Restore previous states", recentLocationMaxItems, recentStateEntityNode, HiCGlobals.menuType.STATE) {
 
             private static final long serialVersionUID = 4205L;
 
@@ -592,57 +609,115 @@ public class MainMenuBar {
                 superAdapter.launchLoadStateFromXML(mapPath);
             }
 
+            @Override
+            public void setEnabled(boolean b) {
+                super.setEnabled(b);
+                exportSavedStateMenuItem.setEnabled(b);
+            }
         };
 
         bookmarksMenu.add(previousStates);
 
-        //---Export Menu-----
-        JMenu shareMenu = new JMenu("Share States");
-
-        //---Export Maps----
-        exportMapAsFile = new JMenuItem();
-        exportMapAsFile.setText("Export Saved States");
-        exportMapAsFile.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new SaveFileDialog(fileForExport);
-            }
-        });
-
-
-        //---Import Maps----
+        //---Import States----
         importMapAsFile = new JMenuItem();
         importMapAsFile.setText("Import State From File");
         importMapAsFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                superAdapter.launchImportState(fileForExport);
+                superAdapter.launchImportState(HiCGlobals.xmlSavedStatesFile);
                 importMapAsFile.setSelected(true);
             }
         });
-        
+
         bookmarksMenu.addSeparator();
-        bookmarksMenu.add(exportMapAsFile);
+        bookmarksMenu.add(exportSavedStateMenuItem);
         bookmarksMenu.add(importMapAsFile);
+        /*
+        //---3D Model Menu-----
+        JMenu toolsMenu = new JMenu("Tools");
+        //---Export Maps----
+        JMenuItem launch3DModel = new JMenuItem();
+        launch3DModel.setText("Visualize 3D Model");
+        launch3DModel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Launcher demo = new Launcher();
+                demo.setVisible(true);
+            }
+        });
+        toolsMenu.add(launch3DModel);
+        */
+
+        //---Figure Menu-----
+        JMenu figureMenu = new JMenu("View");
+
+        //---Axis Layout mode-----
+        final JCheckBoxMenuItem axisEndpoint = new JCheckBoxMenuItem("Axis Endpoints Only");
+        axisEndpoint.setSelected(HiCRulerPanel.getShowOnlyEndPts());
+        axisEndpoint.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                HiCRulerPanel.setShowOnlyEndPts(axisEndpoint.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        figureMenu.add(axisEndpoint);
+
+        //---ShowChromosomeFig mode-----
+        //drawLine, drawArc or draw polygon// draw round rect
+        // fill Rect according to the chormsome location.
+        final JCheckBoxMenuItem showChromosomeFig = new JCheckBoxMenuItem("Chromosome Context");
+        showChromosomeFig.setSelected(HiCRulerPanel.getShowChromosomeFigure());
+        showChromosomeFig.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.setShowChromosomeFig(showChromosomeFig.isSelected());
+                superAdapter.repaint();
+            }
+        });
+        figureMenu.add(showChromosomeFig);
+
+
+        figureMenu.addSeparator();
+
+        //---Export Image Menu-----
+        JMenuItem saveToPDF = new JMenuItem();
+        saveToPDF.setText("Export PDF Figure...");
+        saveToPDF.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.launchExportPDF();
+            }
+        });
+        figureMenu.add(saveToPDF);
+
+        JMenuItem saveToSVG = new JMenuItem();
+        saveToSVG.setText("Export SVG Figure...");
+        saveToSVG.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                superAdapter.launchExportSVG();
+            }
+        });
+        figureMenu.add(saveToSVG);
 
 
         menuBar.add(fileMenu);
         menuBar.add(annotationsMenu);
         menuBar.add(bookmarksMenu);
+        menuBar.add(figureMenu);
         //menuBar.add(shareMenu);
         //menuBar.add(toolsMenu);
         return menuBar;
     }
 
-    public RecentMenu getRecentLocationMenu(){
+    public RecentMenu getRecentLocationMenu() {
         return recentLocationMenu;
     }
 
-    public void setShow2DAnnotations(boolean show){
+    public void setShow2DAnnotations(boolean show) {
         showLoopsItem.setSelected(show);
     }
 
-    public void clearAllAnnotations(){
+    public void clearAllAnnotations() {
         customAnnotations.clearAnnotations();
     }
 
@@ -663,5 +738,6 @@ public class MainMenuBar {
 
     public void setContolMapLoadableEnabled(boolean status) {
         loadControlFromList.setEnabled(status);
+        recentControlMapMenu.setEnabled(status);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2014 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,9 @@
 package juicebox.windowui;
 
 import juicebox.HiC;
+import juicebox.HiCGlobals;
+import juicebox.data.HiCFileLoader;
+import org.broad.igv.ui.util.MessageUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,8 +60,14 @@ public class HiCKeyDispatcher implements KeyEventDispatcher {
 
             }
             return true;
+        } else if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F10) {
+            String newURL = MessageUtils.showInputDialog("Specify a new properties file",
+                    HiCGlobals.defaultPropertiesURL);
+            if (newURL != null) {
+                HiCFileLoader.changeJuiceboxPropertiesFile(newURL);
+            }
+            return true;
         } else {
-
             return false;
         }
     }

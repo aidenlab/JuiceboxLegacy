@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package juicebox.windowui;
 
+import juicebox.DirectoryManager;
 import juicebox.HiCGlobals;
 import juicebox.state.XMLFileWriter;
 import org.broad.igv.Globals;
@@ -52,19 +53,17 @@ import java.util.prefs.Preferences;
  */
 public abstract class RecentMenu extends JMenu {
     private static final long serialVersionUID = 4685393080959162312L;
+    private static final int maxLengthEntryName = 100;
     private final int m_maxItems;
     private final String m_entry;
     private final Preferences prefs = Preferences.userNodeForPackage(Globals.class);
-    private final File currentStates = new File(HiCGlobals.stateFileName);
-    private final File JuiceboxStatesXML = new File("JuiceboxStatesXML.txt");
+    private final File JuiceboxStatesXML = new File(DirectoryManager.getHiCDirectory(), "JuiceboxStatesXML.txt");
+    private final HiCGlobals.menuType myType;
     private List<String> m_items = new ArrayList<String>();
-    private boolean checkForDuplicates = false;
-    private HiCGlobals.menuType myType;
 
-    public RecentMenu(String name, int count, String prefEntry, HiCGlobals.menuType type, boolean checkForDuplicates) {
+    public RecentMenu(String name, int count, String prefEntry, HiCGlobals.menuType type) {
         super(name);
 
-        this.checkForDuplicates = checkForDuplicates;
         this.m_maxItems = count;
         this.m_entry = prefEntry;
         this.myType = type;
@@ -106,7 +105,7 @@ public abstract class RecentMenu extends JMenu {
                 //Clean state data:
                 if (myType == HiCGlobals.menuType.STATE) {
                     try {
-                        BufferedWriter bWriter = new BufferedWriter(new FileWriter(currentStates, false));
+                        BufferedWriter bWriter = new BufferedWriter(new FileWriter(HiCGlobals.stateFile, false));
                         BufferedWriter buffWriter = new BufferedWriter(new FileWriter(JuiceboxStatesXML, false));
 
                         HiCGlobals.savedStatesList.clear();
@@ -128,15 +127,14 @@ public abstract class RecentMenu extends JMenu {
      * Add new recent entry, update file and menu
      *
      * @param savedEntryOriginal Name and Value of entry.
-     * @param updateFile also save to file, Constructor call with false - no need to re-write.
+     * @param updateFile         also save to file, Constructor call with false - no need to re-write.
      */
     public void addEntry(String savedEntryOriginal, boolean updateFile) {
         //clear the existing items
         this.removeAll();
-        String savedEntry = savedEntryOriginal;
 
-        m_items.remove(savedEntry);
-        m_items.add(0, savedEntry);
+        m_items.remove(savedEntryOriginal);
+        m_items.add(0, savedEntryOriginal);
 
         //Chop last item if list is over size:
         if (this.m_items.size() > this.m_maxItems) {
@@ -150,7 +148,11 @@ public abstract class RecentMenu extends JMenu {
             temp = m_item.split(delimiter);
 
             if (!temp[0].equals("")) {
-                JMenuItem menuItem = new JMenuItem(temp[0]);
+                String truncatedName = temp[0];
+                if (truncatedName.length() > maxLengthEntryName) {
+                    truncatedName = truncatedName.substring(0, maxLengthEntryName - 1);
+                }
+                JMenuItem menuItem = new JMenuItem(truncatedName);
                 menuItem.setVisible(true);
                 menuItem.setToolTipText(temp[0]);
                 menuItem.setActionCommand(m_item);
@@ -167,6 +169,7 @@ public abstract class RecentMenu extends JMenu {
         //update the file
         if (updateFile) {
             try {
+                //todo: null in savedEntryOriginal will cause an exception...
                 for (int i = 0; i < this.m_maxItems; i++) {
                     if (i < this.m_items.size()) {
                         prefs.put(this.m_entry + i, this.m_items.get(i));
@@ -193,6 +196,7 @@ public abstract class RecentMenu extends JMenu {
      */
     public abstract void onSelectPosition(String mapPath);
 
+    //TODO--- Update recent menu when HiC states are imported
     public void updateNamesFromImport(String importedFile) {
         Document doc;
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -256,12 +260,12 @@ public abstract class RecentMenu extends JMenu {
 
     }
 
-    public String checkForDuplicateNames(String savedNameOriginal){
+    public String checkForDuplicateNames(String savedNameOriginal) {
         //check for saved states
         String savedName = savedNameOriginal;
 
         boolean suitableNameNotFound = true;
-        while(suitableNameNotFound) {
+        while (suitableNameNotFound) {
             suitableNameNotFound = false;
             boolean repFound = false;
             for (String item : m_items) {
@@ -279,7 +283,7 @@ public abstract class RecentMenu extends JMenu {
                 } else if (option == JOptionPane.NO_OPTION) {
                     savedName = JOptionPane.showInputDialog(null, "Please enter new name for state.");
                     return savedName;
-                } else if (option == JOptionPane.CLOSED_OPTION){
+                } else if (option == JOptionPane.CLOSED_OPTION) {
                     savedName = "";
                     return savedName;
                 }

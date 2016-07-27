@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,8 +65,7 @@ public class ThumbnailPanel extends JComponent implements Serializable {
                         int yBP = (int) (mouseEvent.getY() * scale.getY());
                         superAdapter.centerMap(xBP, yBP);
                     } catch (Exception e) {
-                        System.out.println("Error when thumbnail clicked");
-                        e.printStackTrace();
+                        System.err.println("Error when thumbnail clicked");
                     }
                 }
             }
@@ -123,7 +122,6 @@ public class ThumbnailPanel extends JComponent implements Serializable {
             try {
                 renderVisibleWindow((Graphics2D) g);
             } catch (Exception e) {
-                return;
             }
         }
     }

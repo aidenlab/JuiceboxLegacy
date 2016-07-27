@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,7 @@ package juicebox.gui;
 import juicebox.HiC;
 import juicebox.HiCGlobals;
 import juicebox.MainWindow;
-import juicebox.data.Dataset;
-import juicebox.data.DatasetReader;
-import juicebox.data.DatasetReaderFactory;
-import juicebox.data.HiCFileLoader;
+import juicebox.data.*;
 import juicebox.mapcolorui.HeatmapPanel;
 import juicebox.state.ImportFileDialog;
 import juicebox.state.LoadStateFromXMLFile;
@@ -49,6 +46,7 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -109,6 +107,7 @@ public class SuperAdapter {
             try {
                 new QCDialog(mainWindow, hic, mainWindow.getTitle() + " info");
             } catch (Exception e) {
+                // TODO - test on hic file with no stats file specified
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(mainWindow, "Unable to launch QC Statistics", "Error",
                         JOptionPane.ERROR_MESSAGE);
@@ -129,15 +128,14 @@ public class SuperAdapter {
         mainMenuBar.setEnableForAllElements(status);
     }
 
-    public void resetControlMap(){
+    public void resetControlMap() {
         hic.setControlDataset(null);
-        MatrixType[] options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+        MatrixType[] options = HiCGlobals.enabledMatrixTypesNoControl;
         mainViewPanel.setSelectedDisplayOption(options, false);
-        currentlyLoadedControlFiles = "";
+        currentlyLoadedControlFiles = null;
+        controlTitle = null;
         updateTitle();
     }
-
-//    public Slideshow getSlideshow() { return new Slideshow(mainWindow,this); }
 
     public void launchImportState(File fileForExport) {
         new ImportFileDialog(fileForExport, mainWindow);
@@ -175,8 +173,12 @@ public class SuperAdapter {
         HiCFileLoader.loadFromRecentActionPerformed(this, url, title, control);
     }
 
-    public void launchExportImage() {
-        new SaveImageDialog(null, hic, mainViewPanel.getHiCPanel());
+    public void launchExportPDF() {
+        new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel(), ".pdf");
+    }
+
+    public void launchExportSVG() {
+        new SaveImageDialog(null, hic, mainWindow, mainViewPanel.getHiCPanel(), ".svg");
     }
 
     public void exportAnnotations() {
@@ -238,7 +240,7 @@ public class SuperAdapter {
     }
 
     public String getDescription(String item) {
-        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved "+ item +":",
+        return JOptionPane.showInputDialog(mainWindow, "Enter description for saved " + item + ":",
                 hic.getDefaultLocationDescription());
     }
 
@@ -279,11 +281,12 @@ public class SuperAdapter {
     }
 
     public Point2D.Double getHiCScale(int width, int height) {
+        // TODO - why does this sometimes return null?
         try {
             return new Point2D.Double((double) hic.getZd().getXGridAxis().getBinCount() / width,
                     (double) hic.getZd().getYGridAxis().getBinCount() / height);
         } catch (Exception e) {
-            return null;
+            return null; // TODO is there a good default to return?
         }
     }
 
@@ -298,9 +301,9 @@ public class SuperAdapter {
     private void unsafeSetInitialZoom() {
 
         //For now, in case of Pearson - set initial to 500KB resolution.
-        if ((hic.getDisplayOption() == MatrixType.PEARSON)) {
+        if (hic.isInPearsonsMode()) {
             initialZoom = hic.getMatrix().getFirstPearsonZoomData(HiC.Unit.BP).getZoom();
-        } else if (hic.getXContext().getChromosome().getName().equals("All")) {
+        } else if (HiCFileTools.isAllChromosome(hic.getXContext().getChromosome())) {
             mainViewPanel.getResolutionSlider().setEnabled(false);
             initialZoom = hic.getMatrix().getFirstZoomData(HiC.Unit.BP).getZoom();
         } else {
@@ -349,12 +352,12 @@ public class SuperAdapter {
         mainWindow.repaint();
     }
 
-    private void unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
+    private boolean unsafeLoad(final List<String> files, final boolean control, boolean restore) throws IOException {
 
         String newFilesToBeLoaded = "";
         boolean allFilesAreHiC = true;
         for (String file : files) {
-            if(newFilesToBeLoaded.length() > 1){
+            if (newFilesToBeLoaded.length() > 1) {
                 newFilesToBeLoaded += "##";
             }
             newFilesToBeLoaded += file;
@@ -365,38 +368,47 @@ public class SuperAdapter {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
-            return;
-        } else if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
+            return false;
+        }
+        if (control && newFilesToBeLoaded.equals(currentlyLoadedControlFiles)) {
             if (!restore) {
                 JOptionPane.showMessageDialog(mainWindow, "File(s) already loaded");
             }
-            return;
-        }
-
-
-        //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
-        //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
-        mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
-        if (!control) {
-            hic.setNormalizationType(NormalizationType.NONE);
+            return false;
         }
 
         if (allFilesAreHiC) {
+            mainViewPanel.setIgnoreUpdateThumbnail(true);
+            //heatmapPanel.setBorder(LineBorder.createBlackLineBorder());
+            //thumbnailPanel.setBorder(LineBorder.createBlackLineBorder());
+            mainViewPanel.getMouseHoverTextPanel().setBorder(LineBorder.createGrayLineBorder());
+
             DatasetReader reader = DatasetReaderFactory.getReader(files);
-            if (reader == null) return;
+            if (reader == null) return false;
             Dataset dataset = reader.read();
             if (reader.getVersion() < HiCGlobals.minVersion) {
                 JOptionPane.showMessageDialog(mainWindow, "This version of \"hic\" format is no longer supported");
-                return;
+                return false;
+            }
+            if (control && !dataset.getGenomeId().equals(hic.getDataset().getGenomeId())) {
+                JOptionPane.showMessageDialog(mainWindow, "Cannot load maps with different genomes");
+                return false;
+            }
+            if (control && dataset.getVersion() != hic.getDataset().getVersion() &&
+                    (dataset.getVersion() < 7 || hic.getDataset().getVersion() < 7)) {
+                JOptionPane.showMessageDialog(mainWindow, "Cannot load control with .hic files less than version 7");
+                return false;
+            }
+
+            if (!control && hic.getDataset() != null && !dataset.getGenomeId().equals(hic.getDataset().getGenomeId())) {
+                resetControlMap();
             }
 
             MatrixType[] options;
             if (control) {
                 hic.setControlDataset(dataset);
-                options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                        MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+                options = HiCGlobals.enabledMatrixTypesWithControl;
             } else {
-
                 hic.reset();
                 hic.setDataset(dataset);
                 hic.setChromosomes(dataset.getChromosomes());
@@ -419,12 +431,10 @@ public class SuperAdapter {
                         hic.getDataset().getVersion() >= HiCGlobals.minVersion);
 
                 if (hic.isControlLoaded()) {
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON,
-                            MatrixType.EXPECTED, MatrixType.RATIO, MatrixType.CONTROL};
+                    options = HiCGlobals.enabledMatrixTypesWithControl;
                 } else {
-                    options = new MatrixType[]{MatrixType.OBSERVED, MatrixType.OE, MatrixType.PEARSON, MatrixType.EXPECTED};
+                    options = HiCGlobals.enabledMatrixTypesNoControl;
                 }
-
 
                 hic.resetContexts();
                 updateTrackPanel();
@@ -445,10 +455,11 @@ public class SuperAdapter {
             }
 
             mainMenuBar.setContolMapLoadableEnabled(true);
-            //refresh(); // an additional refresh seems to remove the upper left black corner
+            mainViewPanel.setIgnoreUpdateThumbnail(false);
         } else {
             JOptionPane.showMessageDialog(mainWindow, "Please choose a .hic file to load");
         }
+        return true;
     }
 
     public void safeLoad(final List<String> files, final boolean control, final String title) {
@@ -466,17 +477,23 @@ public class SuperAdapter {
         String resetTitle = datasetTitle;
         if (control) resetTitle = controlTitle;
 
+        ActionListener l = mainViewPanel.getDisplayOptionComboBox().getActionListeners()[0];
         try {
-            unsafeLoad(files, control, restore);
-            mainViewPanel.updateThumbnail(hic);
-            refresh();
-            updateTitle(control, title);
+            mainViewPanel.getDisplayOptionComboBox().removeActionListener(l);
+            if (unsafeLoad(files, control, restore)) {
+                //mainViewPanel.updateThumbnail(hic);
+                refresh();
+                updateTitle(control, title);
+            }
         } catch (IOException e) {
+            // TODO somehow still have trouble reloading the previous file
             log.error("Error loading hic file", e);
             JOptionPane.showMessageDialog(mainWindow, "Error loading .hic file", "Error", JOptionPane.ERROR_MESSAGE);
-            if (!control) hic.reset();
             mainViewPanel.updateThumbnail(hic);
             updateTitle(control, resetTitle);
+        }
+        finally {
+            mainViewPanel.getDisplayOptionComboBox().addActionListener(l);
         }
     }
 
@@ -522,13 +539,21 @@ public class SuperAdapter {
     private boolean unsafeDisplayOptionComboBoxActionPerformed() {
 
         MatrixType option = (MatrixType) (mainViewPanel.getDisplayOptionComboBox().getSelectedItem());
-        if (hic.isWholeGenome() && option != MatrixType.OBSERVED && option != MatrixType.CONTROL && option != MatrixType.RATIO) {
+        if (hic.isWholeGenome() && !MatrixType.isValidGenomeWideOption(option)) {
             JOptionPane.showMessageDialog(mainWindow, option + " matrix is not available for whole-genome view.");
             mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
             return false;
         }
 
         mainViewPanel.getColorRangePanel().handleNewFileLoading(option, MainViewPanel.preDefMapColor);
+
+        if (option == MatrixType.VS) {
+            if (!hic.getMatrix().isIntra()) {
+                JOptionPane.showMessageDialog(mainWindow, "Observed VS Control is not available for inter-chr views.");
+                mainViewPanel.getDisplayOptionComboBox().setSelectedItem(hic.getDisplayOption());
+                return false;
+            }
+        }
 
         if (option == MatrixType.PEARSON) {
             if (!hic.getMatrix().isIntra()) {
@@ -557,6 +582,7 @@ public class SuperAdapter {
     }
 
     /**
+     * TODO deprecate
      *
      * @return hic
      */
@@ -565,6 +591,7 @@ public class SuperAdapter {
     }
 
     /**
+     * TODO deprecate
      *
      * @return mainwindow
      */
@@ -596,6 +623,7 @@ public class SuperAdapter {
         mainViewPanel.repaintTrackPanels();
     }
 
+    // only hic should call this
     public boolean isResolutionLocked() {
         return mainViewPanel.isResolutionLocked();
     }
@@ -619,18 +647,21 @@ public class SuperAdapter {
     }
 
     private void updateTitle(boolean control, String title) {
-        if (control) controlTitle = title;
-        else datasetTitle = title;
-        updateTitle();
+        if (title != null && title.length() > 0) {
+            if (control) controlTitle = title;
+            else datasetTitle = title;
+            updateTitle();
+        }
     }
 
     private void updateTitle() {
         String newTitle = datasetTitle;
-        if (controlTitle != null) newTitle += "  (control=" + controlTitle + ")";
+        if (controlTitle != null && controlTitle.length() > 0)
+            newTitle += "  (control=" + controlTitle + ")";
         mainWindow.setTitle(HiCGlobals.juiceboxTitle + newTitle);
     }
 
-    public String getMapName(){
+    private String getMapName() {
         return datasetTitle.split(" ")[0];
     }
 
@@ -698,6 +729,10 @@ public class SuperAdapter {
         hic.setSelectedChromosomes(chrX, chrY);
         mainViewPanel.getRulerPanelX().setContext(hic.getXContext(), HiCRulerPanel.Orientation.HORIZONTAL);
         mainViewPanel.getRulerPanelY().setContext(hic.getYContext(), HiCRulerPanel.Orientation.VERTICAL);
+
+        mainViewPanel.getChromosomeFigPanelX().setContext(hic.getXContext(), HiCChromosomeFigPanel.Orientation.HORIZONTAL);
+        mainViewPanel.getChromosomeFigPanelY().setContext(hic.getYContext(), HiCChromosomeFigPanel.Orientation.VERTICAL);
+
         unsafeSetInitialZoom();
     }
 
@@ -719,5 +754,9 @@ public class SuperAdapter {
 
     public void toggleFeatureOpacity(boolean status) {
         hic.toggleFeatureOpacity(status);
+    }
+
+    public void setShowChromosomeFig(boolean status) {
+        mainViewPanel.setShowChromosomeFig(status);
     }
 }

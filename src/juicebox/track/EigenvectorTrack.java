@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,13 +53,22 @@ public class EigenvectorTrack extends HiCTrack {
     private Color color = Color.blue.darker();
     private Color altColor = Color.red.darker();
     private int currentZoom = -1;
-    private String name = "eigenvector";
+    private String name;
+    private boolean isControl = false;
+    private int isCtrlInt = 0;
 
 
-    public EigenvectorTrack(String id, String name, HiC hic) {
+    public EigenvectorTrack(String id, String name, HiC hic, boolean isControl) {
         super(new ResourceLocator(id));
         this.hic = hic;
         this.name = name;
+        this.isControl = isControl;
+        if (isControl) {
+            isCtrlInt = 1000;
+            // there aren't any organisms I'm aware of with 1000 chromosomes, we should be safe with this offset
+            // could probably multiply by -1 as well, would not work for all by all (-0 = 0)
+            // but genomewide doesn't have an eigenvector todo consider if *(-1) is a better option
+        }
 
     }
 
@@ -83,12 +92,12 @@ public class EigenvectorTrack extends HiCTrack {
             }
             */
             double[] tmpArray = tmp.toArray();
-            medianCache.put(chrIdx, StatUtils.percentile(tmpArray, 50));
+            medianCache.put(chrIdx + isCtrlInt, StatUtils.percentile(tmpArray, 50));
             double max = 0;
             for (double aData : tmpArray) {
                 if (Math.abs(aData) > max) max = Math.abs(aData);
             }
-            dataMaxCache.put(chrIdx, max);
+            dataMaxCache.put(chrIdx + isCtrlInt, max);
         }
     }
 
@@ -129,15 +138,15 @@ public class EigenvectorTrack extends HiCTrack {
      * Render the track in the supplied rectangle.  It is the responsibility of the track to draw within the
      * bounds of the rectangle.
      *
-     * @param g2d      the graphics context
+     * @param g      the graphics context
      * @param rect     the track bounds, relative to the enclosing DataPanel bounds.
      * @param gridAxis
      */
 
     @Override
-    public void render(Graphics2D g2d, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
+    public void render(Graphics g, Context context, Rectangle rect, TrackPanel.Orientation orientation, HiCGridAxis gridAxis) {
 
-        g2d.setColor(color);
+        g.setColor(color);
 
         int height = orientation == TrackPanel.Orientation.X ? rect.height : rect.width;
         int width = orientation == TrackPanel.Orientation.X ? rect.width : rect.height;
@@ -146,7 +155,11 @@ public class EigenvectorTrack extends HiCTrack {
 
         MatrixZoomData zd;
         try {
-            zd = hic.getZd();
+            if (isControl) {
+                zd = hic.getControlZd();
+            } else {
+                zd = hic.getZd();
+            }
         } catch (Exception e) {
             return;
         }
@@ -157,30 +170,30 @@ public class EigenvectorTrack extends HiCTrack {
         }
 
         int chrIdx = orientation == TrackPanel.Orientation.X ? zd.getChr1Idx() : zd.getChr2Idx();
-        double[] eigen = dataCache.get(chrIdx);
+        double[] eigen = dataCache.get(chrIdx + isCtrlInt);
         if (eigen == null) {
-            eigen = hic.getEigenvector(chrIdx, 0);
+            eigen = hic.getEigenvector(chrIdx, 0, isControl);
             currentZoom = zoom;
             setData(chrIdx, eigen);
         }
 
 
         if (eigen == null || eigen.length == 0) {
-            Font original = g2d.getFont();
-            g2d.setFont(FontManager.getFont(12));
+            Font original = g.getFont();
+            g.setFont(FontManager.getFont(12));
 
             if (orientation == TrackPanel.Orientation.X) {
-                GraphicUtils.drawCenteredText("Eigenvector not available at this resolution", rect, g2d);
+                GraphicUtils.drawCenteredText("Eigenvector not available at this resolution", rect, g);
             } else {
-                drawRotatedString(g2d, "Eigenvector not available at this resolution", (2 * rect.height) / 3, rect.x + 15);
+                drawRotatedString((Graphics2D) g, "Eigenvector not available at this resolution", (2 * rect.height) / 3, rect.x + 15);
             }
 
-            g2d.setFont(original);
+            g.setFont(original);
             return;
         }
 
-        double dataMax = dataMaxCache.get(chrIdx);
-        double median = medianCache.get(chrIdx);
+        double dataMax = dataMaxCache.get(chrIdx + isCtrlInt);
+        double median = medianCache.get(chrIdx + isCtrlInt);
 
 
         int h = height / 2;
@@ -203,9 +216,9 @@ public class EigenvectorTrack extends HiCTrack {
 
             int myh = (int) ((x2 / max) * h);
             if (x2 > 0) {
-                g2d.fillRect(xPixelLeft, y + h - myh, (xPixelRight - xPixelLeft), myh);
+                g.fillRect(xPixelLeft, y + h - myh, (xPixelRight - xPixelLeft), myh);
             } else {
-                g2d.fillRect(xPixelLeft, y + h, (xPixelRight - xPixelLeft), -myh);
+                g.fillRect(xPixelLeft, y + h, (xPixelRight - xPixelLeft), -myh);
             }
         }
 
@@ -222,7 +235,7 @@ public class EigenvectorTrack extends HiCTrack {
     }
 
     public Renderer<?> getRenderer() {
-        return null;
+        return null;  //TODO change body of implemented methods use File | Settings | File Templates.
     }
 
     public void forceRefresh() {
@@ -239,5 +252,7 @@ public class EigenvectorTrack extends HiCTrack {
         g2.translate(-x, 0);
         g2.drawString(string, x, y);
         g2.setTransform(orig);
+        //g2.translate(0,0);
+        //g2.scale(1,1);
     }
 }

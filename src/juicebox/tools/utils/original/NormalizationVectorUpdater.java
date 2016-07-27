@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -279,6 +279,7 @@ public class NormalizationVectorUpdater {
         for (HiCZoom zoom : resolutions) {
 
             // compute genome-wide normalization
+            // TODO make this dependent on memory, do as much as possible
             if (genomeWideResolution >= 10000 && zoom.getUnit() == HiC.Unit.BP && zoom.getBinSize() >= genomeWideResolution) {
 
                 // do all four genome-wide normalizations
@@ -449,16 +450,16 @@ public class NormalizationVectorUpdater {
                     }
 
                     if (vcSum > 0) {
-                        sums.add(new NormalizedSum("VC", chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
+                        sums.add(new NormalizedSum(HiCFileTools.VC, chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
                                 zoom.getBinSize(), vcSum));
                     }
                     if (vcSqrtSum > 0) {
-                        sums.add(new NormalizedSum("VC_SQRT", chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
+                        sums.add(new NormalizedSum(HiCFileTools.VC_SQRT, chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
                                 zoom.getBinSize(), vcSqrtSum));
                     }
 
                     if (krSum > 0) {
-                        sums.add(new NormalizedSum("KR", chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
+                        sums.add(new NormalizedSum(HiCFileTools.KR, chr1.getIndex(), chr2.getIndex(), zoom.getUnit().toString(),
                                 zoom.getBinSize(), krSum));
 
                     }
@@ -614,9 +615,9 @@ public class NormalizationVectorUpdater {
             buffer.putNullTerminatedString(ev.getType().toString());
 
             int binSize = ev.getGridSize();
-            String unit = ev.isFrag ? "FRAG" : "BP";
+            HiC.Unit unit = ev.isFrag ? HiC.Unit.FRAG : HiC.Unit.BP;
 
-            buffer.putNullTerminatedString(unit);
+            buffer.putNullTerminatedString(unit.toString());
             buffer.putInt(binSize);
 
             // The density values
@@ -642,7 +643,7 @@ public class NormalizationVectorUpdater {
 
         for (ExpectedValueFunction function : expectedValueFunctionMap.values()) {
             buffer.putNullTerminatedString(function.getNormalizationType().toString());
-            buffer.putNullTerminatedString(function.getUnit());
+            buffer.putNullTerminatedString(function.getUnit().toString());
             buffer.putInt(function.getBinSize());
             double[] expectedValues = function.getExpectedValues();
             buffer.putInt(expectedValues.length);

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,19 +39,18 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
 
 /**
  * Created by Zulkifl Gire on 7/15/2015.
  */
 public class XMLFileWriter {
-    private static final File currentStatesToXML = new File(HiCGlobals.xmlSavedStatesFileName);
+
     private static StreamResult streamResult;
     private static Document xmlDoc;
 
     public static void overwriteXMLFile() {
         try {
-            streamResult = new StreamResult(currentStatesToXML);
+            streamResult = new StreamResult(HiCGlobals.xmlSavedStatesFile);
             Element root = initXML();
 
             for (String stateString : HiCGlobals.savedStatesList) {
@@ -96,11 +95,11 @@ public class XMLFileWriter {
             } else if (i == 2) {//mapurl
                 n = xmlDoc.createTextNode(mapName[1]);
                 //System.out.println(mapName[1]);
-            } else if(i == 3){//controlURL
-                if(mapName.length > 2 && !mapName[2].contains("null") && mapName[2].length() > 1){
+            } else if (i == 3) {//controlURL
+                if (mapName.length > 2 && !mapName[2].contains("null") && mapName[2].length() > 1) {
                     n = xmlDoc.createTextNode(mapName[2]);
                     //System.out.println(mapName[2]);
-                } else{
+                } else {
                     n = xmlDoc.createTextNode("null");
                 }
             } else if (i < 19 || elements.length > 18) { // elements.length checked in case no annotations

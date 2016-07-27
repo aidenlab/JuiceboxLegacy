@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ import java.util.*;
 /**
  * Created by muhammadsaadshamim on 11/17/15.
  */
-public class BEDTools {
+class BEDTools {
     /**
      * BEDTools port of merge based on
      * http://bedtools.readthedocs.org/en/latest/content/tools/merge.html

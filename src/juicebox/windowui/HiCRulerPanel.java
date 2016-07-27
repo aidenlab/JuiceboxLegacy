@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ package juicebox.windowui;
 
 import juicebox.Context;
 import juicebox.HiC;
+import juicebox.data.HiCFileTools;
 import juicebox.data.MatrixZoomData;
 import juicebox.track.HiCGridAxis;
 import org.apache.log4j.Logger;
@@ -36,7 +37,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 
 /**
@@ -46,18 +49,13 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 3754386054158787331L;
     private static Logger log = Logger.getLogger(HiCRulerPanel.class);
+    private static boolean showOnlyEndPts = false;
+    private static boolean showChromosomeFigure = true;
     private final Font tickFont = FontManager.getFont(Font.BOLD, 9);
     private final Font spanFont = FontManager.getFont(Font.BOLD, 12);
-    private HiC hic;
+    private final HiC hic;
     private Orientation orientation;
     private Context context;
-
-
-    /**
-     * Empty constructor for form builder
-     */
-    private HiCRulerPanel() {
-    }
 
     public HiCRulerPanel(HiC hic) {
         this.hic = hic;
@@ -66,42 +64,83 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
     private static String formatNumber(double position) {
 
-        //NumberFormatter f = new NumberFormatter();
-        DecimalFormat formatter = new DecimalFormat();
-        return formatter.format((int) position);
-        //return f.valueToString(position);
-
+        if (showOnlyEndPts) {
+            //Export Version
+            NumberFormat df = NumberFormat.getInstance();
+            df.setMinimumFractionDigits(2);
+            df.setMaximumFractionDigits(2);
+            df.setRoundingMode(RoundingMode.DOWN);
+            //return f.valueToString(position);
+            return df.format(position);
+        } else {
+            DecimalFormat formatter = new DecimalFormat();
+            return formatter.format((int) position);
+        }
     }
 
-    private static TickSpacing findSpacing(long maxValue, boolean scaleInKB) {
+    private static TickSpacing findSpacing(long maxValue, int width, boolean scaleInKB) {
 
         if (maxValue < 10) {
-            return new TickSpacing(1, "bp", 1);
+            return new TickSpacing(1, HiC.Unit.BP.toString(), 1);
         }
 
+        int maxNumberOfTickMarks = (int) Math.ceil(width / 25);
 
-        // Now man zeroes?
+        // How many zeroes?
         int nZeroes = (int) Math.log10(maxValue);
-        String majorUnit = scaleInKB ? "kb" : "bp";
+        String majorUnit = scaleInKB ? "KB" : HiC.Unit.BP.toString();
         int unitMultiplier = 1;
         if (nZeroes > 9) {
-            majorUnit = scaleInKB ? "tb" : "gb";
-            unitMultiplier = 1000000000;
+            majorUnit = scaleInKB ? "TB" : "GB";
+            unitMultiplier = (int) 1e9;
         }
         if (nZeroes > 6) {
-            majorUnit = scaleInKB ? "gb" : "mb";
-            unitMultiplier = 1000000;
+            majorUnit = scaleInKB ? "GB" : "MB";
+            unitMultiplier = (int) 1e6;
         } else if (nZeroes > 3) {
-            majorUnit = scaleInKB ? "mb" : "kb";
+            majorUnit = scaleInKB ? "MB" : "KB";
             unitMultiplier = 1000;
         }
 
-        double nMajorTicks = maxValue / Math.pow(10, nZeroes - 1);
-        if (nMajorTicks < 25) {
-            return new TickSpacing(Math.pow(10, nZeroes - 1), majorUnit, unitMultiplier);
-        } else {
-            return new TickSpacing(Math.pow(10, nZeroes) / 2, majorUnit, unitMultiplier);
+        int decrementIter = nZeroes - 1;
+        while (decrementIter > -1) {
+
+            int latestIncrement = (int) Math.pow(10, nZeroes - decrementIter);
+            int nMajorTicks = (int) Math.ceil(maxValue / latestIncrement);
+
+            if (nMajorTicks < maxNumberOfTickMarks) {
+                return new TickSpacing(latestIncrement, majorUnit, unitMultiplier);
+            }
+
+            latestIncrement = (int) Math.pow(10, nZeroes - decrementIter + 1) / 2;
+            nMajorTicks = (int) Math.ceil(maxValue / latestIncrement);
+
+            if (nMajorTicks < maxNumberOfTickMarks) {
+                return new TickSpacing(latestIncrement, majorUnit, unitMultiplier);
+            }
+
+            decrementIter--;
         }
+
+        int spacing = (int) (maxValue / maxNumberOfTickMarks) / 250 * 250;
+
+        return new TickSpacing(spacing, majorUnit, unitMultiplier);
+    }
+
+    public static boolean getShowOnlyEndPts() {
+        return showOnlyEndPts;
+    }
+
+    public static void setShowOnlyEndPts(boolean toggled) {
+        showOnlyEndPts = toggled;
+    }
+
+    public static boolean getShowChromosomeFigure() {
+        return showChromosomeFigure;
+    }
+
+    public static void setShowChromosomeFigure(boolean toggled) {
+        showChromosomeFigure = toggled;
     }
 
     public void setContext(Context frame, Orientation orientation) {
@@ -154,17 +193,27 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         Chromosome chromosome = context.getChromosome();
 
         if (chromosome != null) {
-            if (chromosome.getName().equals("All")) {
-
-            } else {
+            if (!HiCFileTools.isAllChromosome(chromosome)) {
                 String rangeString = chromosome.getName();
                 int strWidth = g.getFontMetrics().stringWidth(rangeString);
                 int strPosition = (w - strWidth) / 2;
 
                 if (!isHorizontal()) strPosition = -strPosition;
 
+                if (hic.getDisplayOption() == MatrixType.VS) {
+                    if (isHorizontal()) {
+                        rangeString = rangeString + " (control)";
+                    } else {
+                        rangeString = rangeString + " (observed)";
+                    }
+                }
+
                 int vPos = h - 35;
-                g.drawString(rangeString, strPosition, vPos);
+
+                if (!showChromosomeFigure) {
+                    g.drawString(rangeString, strPosition, vPos);
+                }
+
             }
         }
     }
@@ -198,10 +247,9 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         } catch (Exception e) {
             return;
         }
-
         if (zd == null || zd.getXGridAxis() == null || zd.getYGridAxis() == null) return;
 
-        if (chromosome.getName().equals("All")) {
+        if (HiCFileTools.isAllChromosome(chromosome)) {
             int x1 = 0;
             List<Chromosome> chromosomes = hic.getChromosomes();
             // Index 0 is whole genome
@@ -210,11 +258,13 @@ public class HiCRulerPanel extends JPanel implements Serializable {
                 Color tColor = isHorizontal() ? topTick : leftTick;
                 g.setColor(tColor);
 
+
+                double binOrigin = context.getBinOrigin();
                 Chromosome c = chromosomes.get(i);
                 genomeCoord += (c.getLength() / 1000);
 
                 int xBin = zd.getXGridAxis().getBinNumberForGenomicPosition(genomeCoord);
-                int x2 = (int) (xBin * hic.getScaleFactor());
+                int x2 = (int) ((xBin - binOrigin) * hic.getScaleFactor());
 
                 int x = (x1 + x2) / 2;
                 int strWidth = g.getFontMetrics().stringWidth(c.getName());
@@ -227,63 +277,94 @@ public class HiCRulerPanel extends JPanel implements Serializable {
 
                 x1 = x2;
             }
-        } else {
+        }
 
-            try {
-                HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
+        else {
+            HiCGridAxis axis = isHorizontal() ? zd.getXGridAxis() : zd.getYGridAxis();
 
-                int binRange = (int) (w / hic.getScaleFactor());
-                double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
+            int binRange = (int) (w / hic.getScaleFactor());
+            double binOrigin = context.getBinOrigin();     // <= by definition at left/top of panel
 
-                int genomeOrigin = axis.getGenomicStart(binOrigin);
+            int genomeOrigin = axis.getGenomicStart(binOrigin);
+            int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+            int range = genomeEnd - genomeOrigin;
 
-                int genomeEnd = axis.getGenomicEnd(binOrigin + binRange);
+            TickSpacing ts = findSpacing(range, w, false);
 
-                int range = genomeEnd - genomeOrigin;
+            if (showOnlyEndPts) {
 
+                // Hundredths decimal point
+                int[] genomePositions = hic.getCurrentRegionWindowGenomicPositions();
 
-                TickSpacing ts = findSpacing(range, false);
-                double spacing = ts.getMajorTick();
+                double startPosition = isHorizontal() ? genomePositions[0] : genomePositions[2];
+                double endPosition = isHorizontal() ? genomePositions[1] : genomePositions[3];
+                int endPositionBin = (int) (axis.getBinNumberForGenomicPosition((int) (endPosition - startPosition)) * hic.getScaleFactor());
+                
+                // actual strings to print and their widths
+                String startPositionString = formatNumber(startPosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
 
-                // Find starting point closest to the current origin
-                int maxX = context.getChromosome().getLength();
-                int nTick = (int) (genomeOrigin / spacing) - 1;
-                int genomePosition = (int) (nTick * spacing);
+                String endPositionString = formatNumber(endPosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                int startPositionStringWidth = g.getFontMetrics().stringWidth(startPositionString);
+                int endPositionStringWidth = g.getFontMetrics().stringWidth(endPositionString);
 
-                //int x = frame.getScreenPosition(genomeTickNumber);
-                int binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
+                //draw start
+                int drawPositionStartString = isHorizontal() ? 0 : -startPositionStringWidth;
+                g.drawString(startPositionString, drawPositionStartString, h - 15);
+                g.drawLine(0, h - 10, 0, h - 2);
 
-                int x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                //draw end
+                if (!isHorizontal()) endPositionBin = -endPositionBin;
+                int drawPositionEndString = isHorizontal() ? endPositionBin - endPositionStringWidth : endPositionBin;
+                g.drawString(endPositionString, drawPositionEndString, h - 15);
+                g.drawLine(endPositionBin, h - 10, endPositionBin, h - 2);
 
-                while (genomePosition < maxX && x < w) {
-                    Color tColor = (orientation == Orientation.HORIZONTAL ? topTick : leftTick);
-                    g.setColor(tColor);
+            } else {
+                try {
 
-                    genomePosition = (int) (nTick * spacing);
+                    int maxX = context.getChromosome().getLength();
+                    double spacing = ts.getMajorTick();
 
-                    // x = frame.getScreenPosition(genomeTickNumber);
-                    binNUmber = axis.getBinNumberForGenomicPosition(genomePosition);
+                    // Find starting point closest to the current origin
+                    int nTick = (int) (genomeOrigin / spacing) - 1;
+                    int genomePosition = (int) (nTick * spacing);
 
-                    x = (int) ((binNUmber - binOrigin) * hic.getScaleFactor());
+                    int binNumber = axis.getBinNumberForGenomicPosition(genomePosition);
+                    int x = (int) ((binNumber - binOrigin) * hic.getScaleFactor());
 
-                    String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
-                    int strWidth = g.getFontMetrics().stringWidth(chrPosition);
-                    int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
-                    //if (strPosition > strEnd) {
+                    while (genomePosition < maxX && x < w) {
+                        Color tColor = isHorizontal() ? topTick : leftTick;
+                        g.setColor(tColor);
 
-                    if (nTick % 2 == 0) {
-                        g.drawString(chrPosition, strPosition, h - 15);
+                        genomePosition = (int) (nTick * spacing);
+                        binNumber = axis.getBinNumberForGenomicPosition(genomePosition);
+                        x = (int) ((binNumber - binOrigin) * hic.getScaleFactor());
+
+                        String chrPosition = formatNumber((double) genomePosition / ts.getUnitMultiplier()) + " " + ts.getMajorUnit();
+                        int strWidth = g.getFontMetrics().stringWidth(chrPosition);
+                        int strPosition = isHorizontal() ? x - strWidth / 2 : -x - strWidth / 2;
+
+                        // prevent cut off near origin
+                        if (isHorizontal()) {
+                            if (binNumber == 0 && strPosition <= 0 && strPosition >= -strWidth / 2)
+                                strPosition = 0;
+                        } else {
+                            if (binNumber == 0 && strPosition >= -strWidth && strPosition <= -strWidth / 2)
+                                strPosition = -strWidth;
+                        }
+
+                        // todo bug or expected behavior?
+                        // see chr1 of k562 mapq30 at fragment resolution
+                        // axis is drawing overlapping positions onto each other
+                        // traces to getFragmentNumberForGenomicPosition method
+                        //System.out.println(genomePosition+"_"+chrPosition+"_"+strPosition);
+                        if (nTick % 2 == 0) g.drawString(chrPosition, strPosition, h - 15);
+
+                        int xpos = isHorizontal() ? x : -x;
+                        g.drawLine(xpos, h - 10, xpos, h - 2);
+                        nTick++;
                     }
-                    //strEnd = strPosition + strWidth;
-                    //}
-
-                    int xpos = (orientation == Orientation.HORIZONTAL ? x : -x);
-
-                    g.drawLine(xpos, h - 10, xpos, h - 2);
-                    nTick++;
+                } catch (Exception e) {
                 }
-            } catch (Exception e) {
-                return;
             }
         }
     }
@@ -329,6 +410,7 @@ public class HiCRulerPanel extends JPanel implements Serializable {
         }
     }
 
+// TODO -- possibly generalize?
 
     class ClickLink {
 

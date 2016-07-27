@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ class RangeSliderUI extends BasicSliderUI {
 
     private final Color[] gradientColorsOE = {Color.BLUE, Color.WHITE, Color.RED};
     private final float[] fractionsOE = {0.0f, 0.5f, 1.0f};
-
+    private final int oeColorMax;
     private Color[] gradientColorsPreDef =
             {new Color(255, 242, 255),
                     new Color(255, 230, 242),
@@ -129,11 +129,9 @@ class RangeSliderUI extends BasicSliderUI {
                     0.925f,
                     0.95f,
                     1.0f};
-
     private boolean colorIsOE = false;
     private boolean colorIsBlank = false;
     private boolean colorIsPreDef = false;
-    private int oeColorMax;
     private int preDefColorMax;
 
     /**
@@ -356,6 +354,7 @@ class RangeSliderUI extends BasicSliderUI {
             Color oldColor = g.getColor();
             g.translate(trackBounds.x + cx, trackBounds.y);
 
+            // TODO - this should eventually be changed to accommodate vertical gradients (see the horizontal gradients code above)
             // Draw selected range.
             g.setColor(rangeColor);
             for (int x = 0; x <= 3; x++) {
@@ -473,8 +472,7 @@ class RangeSliderUI extends BasicSliderUI {
     public void setDisplayToPreDef(boolean isPreDef) {
 
         this.colorIsPreDef = isPreDef;
-        if (MainViewPanel.preDefMapColorFractions.size() == 0)
-        {
+        if (MainViewPanel.preDefMapColorFractions.size() == 0) {
             return;
         }
         int colorArraySize = MainViewPanel.preDefMapColorFractions.size();
@@ -484,7 +482,7 @@ class RangeSliderUI extends BasicSliderUI {
         int i = 0;
 
         float fractionSize = 1.0f / colorArraySize;
-        for (;i < colorArraySize; i++){
+        for (; i < colorArraySize; i++) {
             fractionsPreDef[i] = fractionSize * i;
         }
 
@@ -761,7 +759,6 @@ class RangeSliderUI extends BasicSliderUI {
                     break;
 
                 default:
-                    return;
             }
         }
     }

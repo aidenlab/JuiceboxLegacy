@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,8 +40,8 @@ import java.util.Set;
  */
 class BlockResults {
 
-    private ArrowheadScoreList internalList;
-    private ArrowheadScoreList internalControl;
+    private final ArrowheadScoreList internalList;
+    private final ArrowheadScoreList internalControl;
     private List<HighScore> results = new ArrayList<HighScore>();
 
     public BlockResults(RealMatrix observed, double varThreshold, double signThreshold,
@@ -62,6 +62,7 @@ class BlockResults {
         //System.out.println("CC "+connectedComponents.size());
 
         results = triangles.calculateResults(connectedComponents);
+        // TODO plotArrowheadFigures();
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import juicebox.data.HiCFileTools;
 import org.broad.igv.feature.Chromosome;
 
 import java.awt.*;
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
@@ -38,6 +39,7 @@ import java.util.List;
  *
  * @author Neva Durand, Muhammad Shamim, Marie Hoeger
  *         <p/>
+ *         TODO cleanup code and eliminate this class
  *         It should become GenomeWideList<Feature2D>
  *         Helper functions should be relocated to Feature2DTools
  */
@@ -129,6 +131,17 @@ public class Feature2DList {
         return commonFeatures;
     }
 
+    // Iterate through new features and see if there is any overlap
+    // TODO: implement this more efficiently, maybe rtree
+    private static void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures) {
+        for (Feature2D inputFeature : inputFeatures) {
+            // Compare input with existing points
+            if (!Feature2DTools.doesOverlap(inputFeature, existingFeatures)) {
+                existingFeatures.add(inputFeature);
+            }
+        }
+    }
+
     /**
      * Returns list of features on this chromosome pair
      *
@@ -138,6 +151,21 @@ public class Feature2DList {
      */
     public List<Feature2D> get(int chr1Idx, int chr2Idx) {
         String key = getKey(chr1Idx, chr2Idx);
+        if (!featureList.containsKey(key)) {
+            List<Feature2D> features = new ArrayList<Feature2D>();
+            featureList.put(key, features);
+        }
+        return featureList.get(key);
+    }
+
+    /**
+     * Returns list of features on this chromosome pair
+     * Warning, this should be used carefully, assumes proper key nomenclature is used
+     * should only be used when comparing equivalent lists
+     *
+     * @return List of 2D features for given key
+     */
+    public List<Feature2D> get(String key) {
         if (!featureList.containsKey(key)) {
             List<Feature2D> features = new ArrayList<Feature2D>();
             featureList.put(key, features);
@@ -159,12 +187,33 @@ public class Feature2DList {
 
     }
 
-    void addByKey(String key, Feature2D feature) {
+    /**
+     * Adds feature to appropriate chromosome pair list; key stored so that first chromosome always less than second
+     *
+     * @param key     chromosomal pair key
+     * @param feature to add
+     */
+    public void addByKey(String key, Feature2D feature) {
         if (featureList.containsKey(key)) {
             featureList.get(key).add(feature);
         } else {
             List<Feature2D> loops = new ArrayList<Feature2D>();
             loops.add(feature);
+            featureList.put(key, loops);
+        }
+    }
+
+    /**
+     * Adds features to appropriate chromosome pair list; key stored so that first chromosome always less than second
+     *
+     * @param key      chromosomal pair key
+     * @param features to add
+     */
+    public void addByKey(String key, List<Feature2D> features) {
+        if (featureList.containsKey(key)) {
+            featureList.get(key).addAll(features);
+        } else {
+            List<Feature2D> loops = new ArrayList<Feature2D>(features);
             featureList.put(key, loops);
         }
     }
@@ -190,12 +239,12 @@ public class Feature2DList {
     /**
      * Export feature list to given file path
      *
-     * @param outputFilePath
+     * @param outputFile
      */
-    public int exportFeatureList(String outputFilePath, boolean formattedOutput, String listFormat) {
+    public int exportFeatureList(File outputFile, boolean formattedOutput, ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
-            final PrintWriter outputFile = HiCFileTools.openWriter(outputFilePath);
-            return exportFeatureList(outputFile, formattedOutput, listFormat);
+            final PrintWriter outputFilePrintWriter = HiCFileTools.openWriter(outputFile);
+            return exportFeatureList(outputFilePrintWriter, formattedOutput, listFormat);
         }
         return -1;
     }
@@ -203,9 +252,9 @@ public class Feature2DList {
     /**
      * Export feature list to given file path
      *
-     * @param outputFile
+     * @param outputFilePrintWriter
      */
-    public int exportFeatureList(final PrintWriter outputFile, final boolean formattedOutput, final String listFormat) {
+    private int exportFeatureList(final PrintWriter outputFilePrintWriter, final boolean formattedOutput, final ListFormat listFormat) {
         if (featureList != null && featureList.size() > 0) {
 
             Feature2D featureZero = extractSingleFeature();
@@ -213,19 +262,19 @@ public class Feature2DList {
                 if (formattedOutput) {
                     String header = Feature2D.genericHeader;
                     final ArrayList<String> outputKeys = new ArrayList<String>();
-                    if (listFormat.matches("hiccupsEnriched")) {
+                    if (listFormat == ListFormat.ENRICHED) {
                         outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
                                 "expectedV", "binBL", "binDonut", "binH", "binV", "fdrBL", "fdrDonut", "fdrH", "fdrV"));
-                    } else if (listFormat.matches("hiccupsFinal")) {
+                    } else if (listFormat == ListFormat.FINAL) {
                         outputKeys.addAll(Arrays.asList("observed", "expectedBL", "expectedDonut", "expectedH",
                                 "expectedV", "fdrBL", "fdrDonut", "fdrH", "fdrV", "numCollapsed", "centroid1", "centroid2", "radius"));
-                    } else if (listFormat.matches("arrowhead")) {
+                    } else if (listFormat == ListFormat.ARROWHEAD) {
                         outputKeys.addAll(Arrays.asList("score", "uVarScore", "lVarScore", "upSign", "loSign"));
                     }
                     for (String key : outputKeys) {
                         header += "\t" + key;
                     }
-                    outputFile.println(header);
+                    outputFilePrintWriter.println(header);
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
@@ -234,24 +283,24 @@ public class Feature2DList {
                                 for (String key : outputKeys) {
                                     output += "\t" + feature.attributes.get(key);
                                 }
-                                outputFile.println(output);
+                                outputFilePrintWriter.println(output);
                             }
                         }
                     });
                 } else {
-                    outputFile.println(featureZero.getOutputFileHeader());
+                    outputFilePrintWriter.println(featureZero.getOutputFileHeader());
                     processLists(new FeatureFunction() {
                         @Override
                         public void process(String chr, List<Feature2D> feature2DList) {
                             Collections.sort(feature2DList);
                             for (Feature2D feature : feature2DList) {
-                                outputFile.println(feature);
+                                outputFilePrintWriter.println(feature);
                             }
                         }
                     });
                 }
             }
-            outputFile.close();
+            outputFilePrintWriter.close();
 
             return 0;
         }
@@ -372,34 +421,13 @@ public class Feature2DList {
 
             if (featureList.containsKey(inputKey)) {
                 for (Feature2D myFeature : featureList.get(inputKey)) {
-                    if (doesOverlap(myFeature, inputFeatures)) {
+                    if (Feature2DTools.doesOverlap(myFeature, inputFeatures)) {
                         output.addByKey(inputKey, myFeature);
                     }
                 }
             }
         }
         return output;
-    }
-
-    // Compares a feature against all other features in list
-    private boolean doesOverlap(Feature2D feature, List<Feature2D> existingFeatures) {
-        boolean repeat = false;
-        for (Feature2D existingFeature : existingFeatures) {
-            if (existingFeature.overlapsWith(feature)) {
-                repeat = true;
-            }
-        }
-        return repeat;
-    }
-
-    // Iterate through new features and see if there is any overlap
-    private void addAllUnique(List<Feature2D> inputFeatures, List<Feature2D> existingFeatures) {
-        for (Feature2D inputFeature : inputFeatures) {
-            // Compare input with existing points
-            if (!doesOverlap(inputFeature, existingFeatures)) {
-                existingFeatures.add(inputFeature);
-            }
-        }
     }
 
     public void addAttributeFieldToAll(final String newAttributeName, final String newAttributeValue) {
@@ -427,6 +455,7 @@ public class Feature2DList {
 
     /**
      * Simple removal of exact duplicates (memory address)
+     * TODO more detailed filtering by size/position/etc? NOTE that this is used by HiCCUPS
      */
     public void removeDuplicates() {
         filterLists(new FeatureFilter() {
@@ -442,7 +471,7 @@ public class Feature2DList {
      *
      * @return keySet
      */
-    Set<String> getKeySet() {
+    private Set<String> getKeySet() {
         return featureList.keySet();
     }
 
@@ -485,7 +514,7 @@ public class Feature2DList {
     /**
      * @return true if features available for this region (key = "chr1_chr2")
      */
-    boolean containsKey(String key) {
+    public boolean containsKey(String key) {
         return featureList.containsKey(key);
     }
 
@@ -519,4 +548,18 @@ public class Feature2DList {
         });
         return feature[0];
     }
+
+    public void clearAllAttributes() {
+        processLists(new FeatureFunction() {
+            @Override
+            public void process(String chr, List<Feature2D> feature2DList) {
+                for (Feature2D feature : feature2DList) {
+                    feature.clearAttributes();
+                }
+            }
+        });
+    }
+
+
+    public enum ListFormat {ENRICHED, FINAL, ARROWHEAD, NA}
 }

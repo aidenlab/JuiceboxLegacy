@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package juicebox.tools.utils.juicer.apa;
 
-import juicebox.tools.clt.juicer.APA;
 import org.apache.commons.math.linear.RealMatrix;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 
@@ -48,12 +47,10 @@ public class APARegionStatistics {
     private final double peak2LR;
     private final double ZscoreLL;
 
-    public APARegionStatistics(RealMatrix data) {
+    public APARegionStatistics(RealMatrix data, int regionWidth) {
         int max = data.getColumnDimension();
         int midPoint = max / 2;
         double centralVal = data.getEntry(midPoint, midPoint);
-
-        int regionWidth = APA.regionWidth;
 
         /** NOTE - indices are inclusive in java, but in python the second index is not inclusive */
 

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,16 +24,18 @@
 
 package juicebox.data;
 
-import juicebox.DirectoryManager;
+import juicebox.HiCGlobals;
 import juicebox.gui.SuperAdapter;
 import juicebox.windowui.LoadDialog;
 import org.apache.log4j.Logger;
 import org.broad.igv.ui.util.FileDialogUtils;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.ParsingUtils;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -50,26 +52,30 @@ public class HiCFileLoader {
     private static final Logger log = Logger.getLogger(HiCFileLoader.class);
     private static Properties properties;
     private static LoadDialog loadDialog = null;
+    private static String propertiesFileURL = System.getProperty("jnlp.loadMenu");
 
-    public static void loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control) {
+    public static File loadMenuItemActionPerformed(SuperAdapter superAdapter, boolean control, File openHiCPath) {
         FilenameFilter hicFilter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
                 return name.toLowerCase().endsWith(".hic");
             }
         };
 
-        File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", DirectoryManager.getUserDirectory(),
-                hicFilter);
+        File[] files = FileDialogUtils.chooseMultiple("Choose Hi-C file(s)", openHiCPath, hicFilter);
         if (files != null && files.length > 0) {
             List<String> fileNames = new ArrayList<String>();
             String str = "";
+            String path = "";
             for (File f : files) {
                 fileNames.add(f.getAbsolutePath());
                 str += f.getName() + " ";
+                path = f.getAbsolutePath();
             }
+            openHiCPath = new File(path);
             superAdapter.addRecentMapMenuEntry(str.trim() + "@@" + files[0].getAbsolutePath(), true);
             superAdapter.safeLoad(fileNames, control, str);
         }
+        return openHiCPath;
     }
 
     public static void loadFromRecentActionPerformed(SuperAdapter superAdapter, String url, String title,
@@ -115,18 +121,55 @@ public class HiCFileLoader {
 
     private static void initProperties() {
         try {
-            String url = System.getProperty("jnlp.loadMenu");
-            if (url == null) {
-                url = "http://hicfiles.tc4ga.com/juicebox.properties";
+            if (propertiesFileURL == null) {
+                propertiesFileURL = HiCGlobals.defaultPropertiesURL;
             }
-            InputStream is = ParsingUtils.openInputStream(url);
+            InputStream is = ParsingUtils.openInputStream(propertiesFileURL);
             properties = new Properties();
             if (is != null) {
                 properties.load(is);
             }
         } catch (Exception error) {
-            log.error("Can't find properties file for loading list", error);
-            //    JOptionPane.showMessageDialog(this, "Can't find properties file for loading list", "Error", JOptionPane.ERROR_MESSAGE);
+            boolean fileFailedToLoad = true;
+            if (!propertiesFileURL.equals(HiCGlobals.defaultPropertiesURL)) {
+                try {
+                    loadPropertiesViaURL(HiCGlobals.defaultPropertiesURL);
+                    fileFailedToLoad = false;
+                } catch (Exception e) {
+                }
+            }
+            if (fileFailedToLoad) {
+                log.error("Can't find properties file for loading list - internet likely disconnected", error);
+            }
         }
     }
+
+    private static void loadPropertiesViaURL(String url) throws IOException {
+        InputStream is = ParsingUtils.openInputStream(url);
+        properties = new Properties();
+        if (is != null) {
+            properties.load(is);
+        }
+    }
+
+    public static void changeJuiceboxPropertiesFile(String newURL) {
+        boolean providedURLIsValid = true;
+        try {
+            InputStream is = ParsingUtils.openInputStream(newURL);
+            properties = new Properties();
+            if (is != null) {
+                properties.load(is);
+            }
+        } catch (Exception error) {
+            providedURLIsValid = false;
+            MessageUtils.showErrorMessage("Can't find/load specified properties file", error);
+        }
+
+        // if no exception has been thrown at this point, the url is a valid one
+        if (providedURLIsValid) {
+            propertiesFileURL = newURL;
+            loadDialog = null;
+        }
+    }
+
 }

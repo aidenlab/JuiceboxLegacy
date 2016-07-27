@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,11 +41,13 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option multipleChromosomesOption = null;
     private static Option multipleResolutionsOption = null;
     private static Option normalizationTypeOption = null;
+    private static Option bypassMinimumMapCountCheckOption = null;
 
     // APA
     private static Option apaWindowOption = null;
     private static Option apaMinValOption = null;
     private static Option apaMaxValOption = null;
+    private static Option multipleCornerRegionDimensionsOption = null;
 
     // for HiCCUPS
     private static Option fdrOption = null;
@@ -54,44 +56,54 @@ public class CommandLineParserForJuicer extends CmdLineParser {
     private static Option clusterRadiusOption = null;
     private static Option thresholdOption = null;
 
-    // for AFA
+    // previously for AFA
     private static Option relativeLocationOption = null;
     private static Option multipleAttributesOption = null;
 
     public CommandLineParserForJuicer() {
         // used flags
-        // wmnxcrplafdptk
+        // wmnxcrplafdptkqb
 
         // available flags
-        // hjoqyzbesguv
+        // hjoyzesguv
 
         // General
-        matrixSizeOption = addIntegerOption('m', "matrix window width");
+        matrixSizeOption = addIntegerOption('m', "matrix_window_width");
         multipleChromosomesOption = addStringOption('c', "chromosomes");
-        multipleResolutionsOption = addStringOption('r', "multiple resolutions separated by ','");
-        normalizationTypeOption = addStringOption('k', "normalization type (NONE/VC/VC_SQRT/KR)");
+        multipleResolutionsOption = addStringOption('r', "resolutions");
+        normalizationTypeOption = addStringOption('k', "normalization");
+        bypassMinimumMapCountCheckOption = addBooleanOption('b', "ignore_sparsity");
 
         // APA
         apaWindowOption = addIntegerOption('w', "window");
-        apaMinValOption = addDoubleOption('n', "minimum value");
-        apaMaxValOption = addDoubleOption('x', "maximum value");
+        apaMinValOption = addDoubleOption('n', "min_dist");
+        apaMaxValOption = addDoubleOption('x', "max_dist");
+        multipleCornerRegionDimensionsOption = addStringOption('q', "corner_width");
 
         // HICCUPS
-        fdrOption = addStringOption('f', "fdr threshold values");
-        windowOption = addStringOption('i', "window width values");
-        peakOption = addStringOption('p', "peak width values");
-        clusterRadiusOption = addStringOption('d', "centroid radii");
-        thresholdOption = addStringOption('t', "postprocessing threshold values");
+        fdrOption = addStringOption('f', "fdr_thresholds");
+        windowOption = addStringOption('i', "window_width");
+        peakOption = addStringOption('p', "peak_width");
+        clusterRadiusOption = addStringOption('d', "centroid_radii");
+        thresholdOption = addStringOption('t', "postprocessing_thresholds");
 
-        // AFA
-        relativeLocationOption = addStringOption('l', "Location Type");
-        multipleAttributesOption = addStringOption('a', "multiple attributes separated by ','");
+        // previously for AFA
+        relativeLocationOption = addStringOption('l', "location_type");
+        multipleAttributesOption = addStringOption('a', "attributes");
     }
 
     public static boolean isJuicerCommand(String cmd) {
         return cmd.equals("hiccups") || cmd.equals("apa") || cmd.equals("arrowhead") || cmd.equals("motifs")
-                || cmd.equals("compare");
+                || cmd.equals("cluster") || cmd.equals("compare") || cmd.equals("loop_domains") ||
+                cmd.equals("hiccupsdiff") || cmd.equals("ab_compdiff");
     }
+
+    public boolean getBypassMinimumMapCountCheckOption() {
+        Object opt = getOptionValue(bypassMinimumMapCountCheckOption);
+        return opt != null;
+    }
+
+
 
     /**
      * String flags
@@ -109,7 +121,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return retrieveNormalization(optionToString(normalizationTypeOption));
     }
 
-    protected NormalizationType retrieveNormalization(String norm) {
+    private NormalizationType retrieveNormalization(String norm) {
         if (norm == null || norm.length() < 1)
             return null;
 
@@ -117,7 +129,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
             return NormalizationType.valueOf(norm);
         } catch (IllegalArgumentException error) {
             System.err.println("Normalization must be one of \"NONE\", \"VC\", \"VC_SQRT\", \"KR\", \"GW_KR\", \"GW_VC\", \"INTER_KR\", or \"INTER_VC\".");
-            System.exit(-1);
+            System.exit(7);
         }
         return null;
     }
@@ -127,7 +139,7 @@ public class CommandLineParserForJuicer extends CmdLineParser {
      */
     private int optionToInt(Option option) {
         Object opt = getOptionValue(option);
-        return opt == null ? 0 : ((Number) opt).intValue();
+        return opt == null ? -1 : ((Number) opt).intValue();
     }
 
     public int getAPAWindowSizeOption() {
@@ -138,12 +150,20 @@ public class CommandLineParserForJuicer extends CmdLineParser {
         return optionToInt(matrixSizeOption);
     }
 
+    /**
+     * double flags
+     */
+    private double optionToDouble(Option option) {
+        Object opt = getOptionValue(option);
+        return opt == null ? -1 : ((Number) opt).doubleValue();
+    }
+
     public double getAPAMinVal() {
-        return optionToInt(apaMinValOption);
+        return optionToDouble(apaMinValOption);
     }
 
     public double getAPAMaxVal() {
-        return optionToInt(apaMaxValOption);
+        return optionToDouble(apaMaxValOption);
     }
 
     /**
@@ -160,6 +180,10 @@ public class CommandLineParserForJuicer extends CmdLineParser {
 
     public List<String> getMultipleResolutionOptions() {
         return optionToStringList(multipleResolutionsOption);
+    }
+
+    public List<String> getAPACornerRegionDimensionOptions() {
+        return optionToStringList(multipleCornerRegionDimensionsOption);
     }
 
     public List<String> getAttributeOption() {

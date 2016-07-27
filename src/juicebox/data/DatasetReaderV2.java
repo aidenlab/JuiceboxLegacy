@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2015 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import juicebox.windowui.HiCZoom;
 import juicebox.windowui.NormalizationType;
 import org.apache.log4j.Logger;
 import org.broad.igv.feature.Chromosome;
+import org.broad.igv.ui.util.MessageUtils;
 import org.broad.igv.util.CompressionUtils;
 import org.broad.igv.util.ParsingUtils;
 import org.broad.igv.util.stream.IGVSeekableStreamFactory;
@@ -42,11 +43,8 @@ import org.broad.igv.util.stream.IGVSeekableStreamFactory;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.SeekableByteChannel;
 import java.util.*;
 
-//import org.broad.igv.exceptions.HttpResponseException;
-//import org.broad.igv.util.FileUtils;
 
 /**
  * @author jrobinso
@@ -60,7 +58,6 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
      */
     private final Map<String, int[]> fragmentSitesCache = new HashMap<String, int[]>();
     private final CompressionUtils compressionUtils;
-    private SeekableByteChannel stream2;
     private SeekableStream stream;
     private Map<String, Preprocessor.IndexEntry> masterIndex;
     private Map<String, Preprocessor.IndexEntry> normVectorIndex;
@@ -93,19 +90,28 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             stream = new SeekableHTTPStream(new URL(path)); // IGVSeekableStreamFactory.getStreamFor(path);
             dis = new LittleEndianInputStream(new BufferedInputStream(stream));
         } catch (MalformedURLException e) {
-            dis = new LittleEndianInputStream(new FileInputStream(path));
+            try {
+                dis = new LittleEndianInputStream(new FileInputStream(path));
+            }
+            catch (Exception e2){
+                if(HiCGlobals.guiIsCurrentlyActive){
+                    MessageUtils.showErrorMessage("File could not be found\n("+path+")",e2);
+                }
+            }
         } finally {
             if (stream != null) stream.close();
 
         }
-        return dis.readString();
-
+        if(dis != null) {
+            return dis.readString();
+        }
+        return null;
     }
 
     private MatrixZoomData readMatrixZoomData(Chromosome chr1, Chromosome chr2, int[] chr1Sites, int[] chr2Sites,
                                               LittleEndianInputStream dis) throws IOException {
 
-        HiC.Unit unit = HiC.Unit.valueOf(dis.readString());
+        HiC.Unit unit = HiC.valueOfUnit(dis.readString());
         dis.readInt();                // Old "zoom" index -- not used
 
         // Stats.  Not used yet, but we need to read them anyway
@@ -404,9 +410,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
         for (int i = 0; i < nExpectedValues; i++) {
 
             NormalizationType no = NormalizationType.NONE;
-            String unit = dis.readString();
+            String unitString = dis.readString();
+            HiC.Unit unit = HiC.valueOfUnit(unitString);
             int binSize = dis.readInt();
-            String key = unit + "_" + binSize + "_" + no;
+            String key = unitString + "_" + binSize + "_" + no;
 
             int nValues = dis.readInt();
             double[] values = new double[nValues];
@@ -447,9 +454,10 @@ public class DatasetReaderV2 extends AbstractDatasetReader {
             for (int i = 0; i < nExpectedValues; i++) {
 
                 String typeString = dis.readString();
-                String unit = dis.readString();
+                String unitString = dis.readString();
+                HiC.Unit unit = HiC.valueOfUnit(unitString);
                 int binSize = dis.readInt();
-                String key = unit + "_" + binSize + "_" + typeString;
+                String key = unitString + "_" + binSize + "_" + typeString;
 
                 int nValues = dis.readInt();
                 double[] values = new double[nValues];
