@@ -143,9 +143,12 @@ Mac
   prompt, type
     `ant -version`
   If Ant is not on your Mac, install it via homebrew. At the command prompt, type
-    `brew update`
-    `brew install ant`
+```    
+brew update
+brew install ant
+```
   You may need to install Homebrew (http://brew.sh/) on your machine
+  
   See the following Stackoverflow post for more details:
 
   http://stackoverflow.com/questions/3222804/how-can-i-install-apache-ant-on-mac-os-x
@@ -158,7 +161,7 @@ Windows
 
 Linux
   In the command prompt, type
-    sudo apt-get install ant
+    `sudo apt-get install ant`
   or
-    sudo yum install ant
+    `sudo yum install ant`
   depending on your package installer
