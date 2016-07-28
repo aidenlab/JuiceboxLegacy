@@ -11,7 +11,10 @@ Neva C. Durand, James T. Robinson, Muhammad S. Shamim, Ido Machol, Jill P. Mesir
 
 Check out the <a href="http://aidenlab.org/juicebox">Juicebox website</a>
 for more details on how to use Juicebox, as well as following a detailed
-tutorial.
+tutorial.  
+
+We also have an active <a href="https://groups.google.com/forum/#!forum/3d-genomics">
+Google groups forum</a> for questions and answers.
 
 Juicebox was created by
 <a href="https://github.com/jrobinso">Jim Robinson</a>,
