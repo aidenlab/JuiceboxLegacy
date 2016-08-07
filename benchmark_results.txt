@@ -1,0 +1,1126 @@
+Create index for data at 1MB resolution, all chromosomes
+Not including fragment map
+Start preprocess
+Writing header
+Writing body
+......................................................................................................................................................................................................................................................................................................................................
+Writing footer
+
+Finished preprocess
+
+Calculating contact matrices took: 1401464 milliseconds
+HiC file version: 8
+INFO [2016-08-05 19:15:24,594]  [DatasetReaderV2.java:449] [main]  No normalization vectors
+
+Calculating norms for zoom BP_1000000
+VC normalization of 1 at BP_1000000 took 31 milliseconds
+KR normalization of 1 at BP_1000000 took 38 milliseconds
+
+VC normalization of 2 at BP_1000000 took 23 milliseconds
+KR normalization of 2 at BP_1000000 took 28 milliseconds
+
+VC normalization of 3 at BP_1000000 took 13 milliseconds
+KR normalization of 3 at BP_1000000 took 13 milliseconds
+
+VC normalization of 4 at BP_1000000 took 6 milliseconds
+KR normalization of 4 at BP_1000000 took 11 milliseconds
+
+VC normalization of 5 at BP_1000000 took 6 milliseconds
+KR normalization of 5 at BP_1000000 took 9 milliseconds
+
+VC normalization of 6 at BP_1000000 took 3 milliseconds
+KR normalization of 6 at BP_1000000 took 8 milliseconds
+
+VC normalization of 7 at BP_1000000 took 5 milliseconds
+KR normalization of 7 at BP_1000000 took 6 milliseconds
+
+VC normalization of 8 at BP_1000000 took 4 milliseconds
+KR normalization of 8 at BP_1000000 took 5 milliseconds
+
+VC normalization of 9 at BP_1000000 took 2 milliseconds
+KR normalization of 9 at BP_1000000 took 4 milliseconds
+
+VC normalization of 10 at BP_1000000 took 4 milliseconds
+KR normalization of 10 at BP_1000000 took 4 milliseconds
+
+VC normalization of 11 at BP_1000000 took 2 milliseconds
+KR normalization of 11 at BP_1000000 took 5 milliseconds
+
+VC normalization of 12 at BP_1000000 took 3 milliseconds
+KR normalization of 12 at BP_1000000 took 2 milliseconds
+
+VC normalization of 13 at BP_1000000 took 3 milliseconds
+KR normalization of 13 at BP_1000000 took 1 milliseconds
+
+VC normalization of 14 at BP_1000000 took 1 milliseconds
+KR normalization of 14 at BP_1000000 took 1 milliseconds
+
+VC normalization of 15 at BP_1000000 took 1 milliseconds
+KR normalization of 15 at BP_1000000 took 1 milliseconds
+
+VC normalization of 16 at BP_1000000 took 1 milliseconds
+KR normalization of 16 at BP_1000000 took 1 milliseconds
+
+VC normalization of 17 at BP_1000000 took 1 milliseconds
+KR normalization of 17 at BP_1000000 took 1 milliseconds
+
+VC normalization of 18 at BP_1000000 took 1 milliseconds
+KR normalization of 18 at BP_1000000 took 2 milliseconds
+
+VC normalization of 19 at BP_1000000 took 0 milliseconds
+KR normalization of 19 at BP_1000000 took 1 milliseconds
+
+VC normalization of 20 at BP_1000000 took 1 milliseconds
+KR normalization of 20 at BP_1000000 took 1 milliseconds
+
+VC normalization of 21 at BP_1000000 took 0 milliseconds
+KR normalization of 21 at BP_1000000 took 1 milliseconds
+
+VC normalization of 22 at BP_1000000 took 0 milliseconds
+KR normalization of 22 at BP_1000000 took 1 milliseconds
+
+VC normalization of X at BP_1000000 took 3 milliseconds
+KR normalization of X at BP_1000000 took 3 milliseconds
+
+VC normalization of Y at BP_1000000 took 0 milliseconds
+KR normalization of Y at BP_1000000 took 3 milliseconds
+
+VC normalization of MT at BP_1000000 took 0 milliseconds
+KR normalization of MT at BP_1000000 took 0 milliseconds
+
+Writing expected
+Writing norms
+Finished writing norms
+
+real	23m22.827s
+user	23m15.017s
+sys	0m32.101s
+Create index for data at all resolutions, all chromosomes
+Not including fragment map
+Start preprocess
+Writing header
+Writing body
+......................................................................................................................................................................................................................................................................................................................................
+Writing footer
+
+Finished preprocess
+
+Calculating contact matrices took: 3631158 milliseconds
+HiC file version: 8
+INFO [2016-08-05 20:15:57,266]  [DatasetReaderV2.java:449] [main]  No normalization vectors
+
+Calculating norms for zoom BP_2500000
+VC normalization of 1 at BP_2500000 took 7 milliseconds
+KR normalization of 1 at BP_2500000 took 15 milliseconds
+
+VC normalization of 2 at BP_2500000 took 5 milliseconds
+KR normalization of 2 at BP_2500000 took 10 milliseconds
+
+VC normalization of 3 at BP_2500000 took 31 milliseconds
+KR normalization of 3 at BP_2500000 took 4 milliseconds
+
+VC normalization of 4 at BP_2500000 took 3 milliseconds
+KR normalization of 4 at BP_2500000 took 4 milliseconds
+
+VC normalization of 5 at BP_2500000 took 3 milliseconds
+KR normalization of 5 at BP_2500000 took 2 milliseconds
+
+VC normalization of 6 at BP_2500000 took 1 milliseconds
+KR normalization of 6 at BP_2500000 took 2 milliseconds
+
+VC normalization of 7 at BP_2500000 took 1 milliseconds
+KR normalization of 7 at BP_2500000 took 2 milliseconds
+
+VC normalization of 8 at BP_2500000 took 1 milliseconds
+KR normalization of 8 at BP_2500000 took 2 milliseconds
+
+VC normalization of 9 at BP_2500000 took 1 milliseconds
+KR normalization of 9 at BP_2500000 took 1 milliseconds
+
+VC normalization of 10 at BP_2500000 took 2 milliseconds
+KR normalization of 10 at BP_2500000 took 2 milliseconds
+
+VC normalization of 11 at BP_2500000 took 2 milliseconds
+KR normalization of 11 at BP_2500000 took 1 milliseconds
+
+VC normalization of 12 at BP_2500000 took 2 milliseconds
+KR normalization of 12 at BP_2500000 took 2 milliseconds
+
+VC normalization of 13 at BP_2500000 took 1 milliseconds
+KR normalization of 13 at BP_2500000 took 1 milliseconds
+
+VC normalization of 14 at BP_2500000 took 1 milliseconds
+KR normalization of 14 at BP_2500000 took 1 milliseconds
+
+VC normalization of 15 at BP_2500000 took 0 milliseconds
+KR normalization of 15 at BP_2500000 took 1 milliseconds
+
+VC normalization of 16 at BP_2500000 took 0 milliseconds
+KR normalization of 16 at BP_2500000 took 0 milliseconds
+
+VC normalization of 17 at BP_2500000 took 0 milliseconds
+KR normalization of 17 at BP_2500000 took 1 milliseconds
+
+VC normalization of 18 at BP_2500000 took 1 milliseconds
+KR normalization of 18 at BP_2500000 took 0 milliseconds
+
+VC normalization of 19 at BP_2500000 took 0 milliseconds
+KR normalization of 19 at BP_2500000 took 1 milliseconds
+
+VC normalization of 20 at BP_2500000 took 1 milliseconds
+KR normalization of 20 at BP_2500000 took 0 milliseconds
+
+VC normalization of 21 at BP_2500000 took 0 milliseconds
+KR normalization of 21 at BP_2500000 took 1 milliseconds
+
+VC normalization of 22 at BP_2500000 took 1 milliseconds
+KR normalization of 22 at BP_2500000 took 0 milliseconds
+
+VC normalization of X at BP_2500000 took 2 milliseconds
+KR normalization of X at BP_2500000 took 2 milliseconds
+
+VC normalization of Y at BP_2500000 took 0 milliseconds
+KR normalization of Y at BP_2500000 took 1 milliseconds
+
+VC normalization of MT at BP_2500000 took 0 milliseconds
+KR normalization of MT at BP_2500000 took 0 milliseconds
+
+Calculating norms for zoom BP_1000000
+VC normalization of 1 at BP_1000000 took 14 milliseconds
+KR normalization of 1 at BP_1000000 took 18 milliseconds
+
+VC normalization of 2 at BP_1000000 took 14 milliseconds
+KR normalization of 2 at BP_1000000 took 13 milliseconds
+
+VC normalization of 3 at BP_1000000 took 5 milliseconds
+KR normalization of 3 at BP_1000000 took 11 milliseconds
+
+VC normalization of 4 at BP_1000000 took 5 milliseconds
+KR normalization of 4 at BP_1000000 took 8 milliseconds
+
+VC normalization of 5 at BP_1000000 took 5 milliseconds
+KR normalization of 5 at BP_1000000 took 4 milliseconds
+
+VC normalization of 6 at BP_1000000 took 4 milliseconds
+KR normalization of 6 at BP_1000000 took 6 milliseconds
+
+VC normalization of 7 at BP_1000000 took 4 milliseconds
+KR normalization of 7 at BP_1000000 took 6 milliseconds
+
+VC normalization of 8 at BP_1000000 took 2 milliseconds
+KR normalization of 8 at BP_1000000 took 3 milliseconds
+
+VC normalization of 9 at BP_1000000 took 4 milliseconds
+KR normalization of 9 at BP_1000000 took 4 milliseconds
+
+VC normalization of 10 at BP_1000000 took 4 milliseconds
+KR normalization of 10 at BP_1000000 took 3 milliseconds
+
+VC normalization of 11 at BP_1000000 took 2 milliseconds
+KR normalization of 11 at BP_1000000 took 3 milliseconds
+
+VC normalization of 12 at BP_1000000 took 2 milliseconds
+KR normalization of 12 at BP_1000000 took 2 milliseconds
+
+VC normalization of 13 at BP_1000000 took 1 milliseconds
+KR normalization of 13 at BP_1000000 took 1 milliseconds
+
+VC normalization of 14 at BP_1000000 took 1 milliseconds
+KR normalization of 14 at BP_1000000 took 2 milliseconds
+
+VC normalization of 15 at BP_1000000 took 0 milliseconds
+KR normalization of 15 at BP_1000000 took 2 milliseconds
+
+VC normalization of 16 at BP_1000000 took 0 milliseconds
+KR normalization of 16 at BP_1000000 took 1 milliseconds
+
+VC normalization of 17 at BP_1000000 took 1 milliseconds
+KR normalization of 17 at BP_1000000 took 2 milliseconds
+
+VC normalization of 18 at BP_1000000 took 1 milliseconds
+KR normalization of 18 at BP_1000000 took 2 milliseconds
+
+VC normalization of 19 at BP_1000000 took 0 milliseconds
+KR normalization of 19 at BP_1000000 took 1 milliseconds
+
+VC normalization of 20 at BP_1000000 took 1 milliseconds
+KR normalization of 20 at BP_1000000 took 0 milliseconds
+
+VC normalization of 21 at BP_1000000 took 0 milliseconds
+KR normalization of 21 at BP_1000000 took 0 milliseconds
+
+VC normalization of 22 at BP_1000000 took 0 milliseconds
+KR normalization of 22 at BP_1000000 took 0 milliseconds
+
+VC normalization of X at BP_1000000 took 3 milliseconds
+KR normalization of X at BP_1000000 took 4 milliseconds
+
+VC normalization of Y at BP_1000000 took 0 milliseconds
+KR normalization of Y at BP_1000000 took 3 milliseconds
+
+VC normalization of MT at BP_1000000 took 0 milliseconds
+KR normalization of MT at BP_1000000 took 0 milliseconds
+
+Calculating norms for zoom BP_500000
+VC normalization of 1 at BP_500000 took 25 milliseconds
+KR normalization of 1 at BP_500000 took 31 milliseconds
+
+VC normalization of 2 at BP_500000 took 26 milliseconds
+KR normalization of 2 at BP_500000 took 58 milliseconds
+
+VC normalization of 3 at BP_500000 took 15 milliseconds
+KR normalization of 3 at BP_500000 took 20 milliseconds
+
+VC normalization of 4 at BP_500000 took 15 milliseconds
+KR normalization of 4 at BP_500000 took 17 milliseconds
+
+VC normalization of 5 at BP_500000 took 12 milliseconds
+KR normalization of 5 at BP_500000 took 15 milliseconds
+
+VC normalization of 6 at BP_500000 took 11 milliseconds
+KR normalization of 6 at BP_500000 took 14 milliseconds
+
+VC normalization of 7 at BP_500000 took 9 milliseconds
+KR normalization of 7 at BP_500000 took 14 milliseconds
+
+VC normalization of 8 at BP_500000 took 8 milliseconds
+KR normalization of 8 at BP_500000 took 10 milliseconds
+
+VC normalization of 9 at BP_500000 took 6 milliseconds
+KR normalization of 9 at BP_500000 took 12 milliseconds
+
+VC normalization of 10 at BP_500000 took 7 milliseconds
+KR normalization of 10 at BP_500000 took 8 milliseconds
+
+VC normalization of 11 at BP_500000 took 5 milliseconds
+KR normalization of 11 at BP_500000 took 8 milliseconds
+
+VC normalization of 12 at BP_500000 took 4 milliseconds
+KR normalization of 12 at BP_500000 took 8 milliseconds
+
+VC normalization of 13 at BP_500000 took 3 milliseconds
+KR normalization of 13 at BP_500000 took 4 milliseconds
+
+VC normalization of 14 at BP_500000 took 2 milliseconds
+KR normalization of 14 at BP_500000 took 4 milliseconds
+
+VC normalization of 15 at BP_500000 took 2 milliseconds
+KR normalization of 15 at BP_500000 took 3 milliseconds
+
+VC normalization of 16 at BP_500000 took 2 milliseconds
+KR normalization of 16 at BP_500000 took 3 milliseconds
+
+VC normalization of 17 at BP_500000 took 1 milliseconds
+KR normalization of 17 at BP_500000 took 3 milliseconds
+
+VC normalization of 18 at BP_500000 took 2 milliseconds
+KR normalization of 18 at BP_500000 took 2 milliseconds
+
+VC normalization of 19 at BP_500000 took 1 milliseconds
+KR normalization of 19 at BP_500000 took 1 milliseconds
+
+VC normalization of 20 at BP_500000 took 1 milliseconds
+KR normalization of 20 at BP_500000 took 2 milliseconds
+
+VC normalization of 21 at BP_500000 took 0 milliseconds
+KR normalization of 21 at BP_500000 took 1 milliseconds
+
+VC normalization of 22 at BP_500000 took 0 milliseconds
+KR normalization of 22 at BP_500000 took 1 milliseconds
+
+VC normalization of X at BP_500000 took 6 milliseconds
+KR normalization of X at BP_500000 took 13 milliseconds
+
+VC normalization of Y at BP_500000 took 0 milliseconds
+KR normalization of Y at BP_500000 took 11 milliseconds
+
+VC normalization of MT at BP_500000 took 0 milliseconds
+KR normalization of MT at BP_500000 took 0 milliseconds
+
+Calculating norms for zoom BP_250000
+VC normalization of 1 at BP_250000 took 48 milliseconds
+KR normalization of 1 at BP_250000 took 93 milliseconds
+
+VC normalization of 2 at BP_250000 took 55 milliseconds
+KR normalization of 2 at BP_250000 took 165 milliseconds
+
+VC normalization of 3 at BP_250000 took 36 milliseconds
+KR normalization of 3 at BP_250000 took 63 milliseconds
+
+VC normalization of 4 at BP_250000 took 33 milliseconds
+KR normalization of 4 at BP_250000 took 63 milliseconds
+
+VC normalization of 5 at BP_250000 took 31 milliseconds
+KR normalization of 5 at BP_250000 took 51 milliseconds
+
+VC normalization of 6 at BP_250000 took 27 milliseconds
+KR normalization of 6 at BP_250000 took 47 milliseconds
+
+VC normalization of 7 at BP_250000 took 24 milliseconds
+KR normalization of 7 at BP_250000 took 40 milliseconds
+
+VC normalization of 8 at BP_250000 took 20 milliseconds
+KR normalization of 8 at BP_250000 took 33 milliseconds
+
+VC normalization of 9 at BP_250000 took 14 milliseconds
+KR normalization of 9 at BP_250000 took 37 milliseconds
+
+VC normalization of 10 at BP_250000 took 18 milliseconds
+KR normalization of 10 at BP_250000 took 31 milliseconds
+
+VC normalization of 11 at BP_250000 took 17 milliseconds
+KR normalization of 11 at BP_250000 took 28 milliseconds
+
+VC normalization of 12 at BP_250000 took 17 milliseconds
+KR normalization of 12 at BP_250000 took 28 milliseconds
+
+VC normalization of 13 at BP_250000 took 9 milliseconds
+KR normalization of 13 at BP_250000 took 15 milliseconds
+
+VC normalization of 14 at BP_250000 took 8 milliseconds
+KR normalization of 14 at BP_250000 took 13 milliseconds
+
+VC normalization of 15 at BP_250000 took 6 milliseconds
+KR normalization of 15 at BP_250000 took 12 milliseconds
+
+VC normalization of 16 at BP_250000 took 7 milliseconds
+KR normalization of 16 at BP_250000 took 11 milliseconds
+
+VC normalization of 17 at BP_250000 took 6 milliseconds
+KR normalization of 17 at BP_250000 took 10 milliseconds
+
+VC normalization of 18 at BP_250000 took 6 milliseconds
+KR normalization of 18 at BP_250000 took 9 milliseconds
+
+VC normalization of 19 at BP_250000 took 4 milliseconds
+KR normalization of 19 at BP_250000 took 5 milliseconds
+
+VC normalization of 20 at BP_250000 took 4 milliseconds
+KR normalization of 20 at BP_250000 took 6 milliseconds
+
+VC normalization of 21 at BP_250000 took 1 milliseconds
+KR normalization of 21 at BP_250000 took 2 milliseconds
+
+VC normalization of 22 at BP_250000 took 2 milliseconds
+KR normalization of 22 at BP_250000 took 2 milliseconds
+
+VC normalization of X at BP_250000 took 23 milliseconds
+KR normalization of X at BP_250000 took 61 milliseconds
+
+VC normalization of Y at BP_250000 took 0 milliseconds
+KR normalization of Y at BP_250000 took 16 milliseconds
+
+VC normalization of MT at BP_250000 took 0 milliseconds
+KR normalization of MT at BP_250000 took 0 milliseconds
+
+Calculating norms for zoom BP_100000
+VC normalization of 1 at BP_100000 took 267 milliseconds
+KR normalization of 1 at BP_100000 took 612 milliseconds
+
+VC normalization of 2 at BP_100000 took 236 milliseconds
+KR normalization of 2 at BP_100000 took 737 milliseconds
+
+VC normalization of 3 at BP_100000 took 160 milliseconds
+KR normalization of 3 at BP_100000 took 266 milliseconds
+
+VC normalization of 4 at BP_100000 took 132 milliseconds
+KR normalization of 4 at BP_100000 took 241 milliseconds
+
+VC normalization of 5 at BP_100000 took 158 milliseconds
+KR normalization of 5 at BP_100000 took 229 milliseconds
+
+VC normalization of 6 at BP_100000 took 117 milliseconds
+KR normalization of 6 at BP_100000 took 334 milliseconds
+
+VC normalization of 7 at BP_100000 took 102 milliseconds
+KR normalization of 7 at BP_100000 took 297 milliseconds
+
+VC normalization of 8 at BP_100000 took 116 milliseconds
+KR normalization of 8 at BP_100000 took 274 milliseconds
+
+VC normalization of 9 at BP_100000 took 61 milliseconds
+KR normalization of 9 at BP_100000 took 185 milliseconds
+
+VC normalization of 10 at BP_100000 took 77 milliseconds
+KR normalization of 10 at BP_100000 took 235 milliseconds
+
+VC normalization of 11 at BP_100000 took 77 milliseconds
+KR normalization of 11 at BP_100000 took 444 milliseconds
+
+VC normalization of 12 at BP_100000 took 77 milliseconds
+KR normalization of 12 at BP_100000 took 158 milliseconds
+
+VC normalization of 13 at BP_100000 took 46 milliseconds
+KR normalization of 13 at BP_100000 took 83 milliseconds
+
+VC normalization of 14 at BP_100000 took 38 milliseconds
+KR normalization of 14 at BP_100000 took 65 milliseconds
+
+VC normalization of 15 at BP_100000 took 32 milliseconds
+KR normalization of 15 at BP_100000 took 90 milliseconds
+
+VC normalization of 16 at BP_100000 took 34 milliseconds
+KR normalization of 16 at BP_100000 took 58 milliseconds
+
+VC normalization of 17 at BP_100000 took 31 milliseconds
+KR normalization of 17 at BP_100000 took 52 milliseconds
+
+VC normalization of 18 at BP_100000 took 29 milliseconds
+KR normalization of 18 at BP_100000 took 52 milliseconds
+
+VC normalization of 19 at BP_100000 took 15 milliseconds
+KR normalization of 19 at BP_100000 took 27 milliseconds
+
+VC normalization of 20 at BP_100000 took 19 milliseconds
+KR normalization of 20 at BP_100000 took 33 milliseconds
+
+VC normalization of 21 at BP_100000 took 7 milliseconds
+KR normalization of 21 at BP_100000 took 11 milliseconds
+
+VC normalization of 22 at BP_100000 took 6 milliseconds
+KR normalization of 22 at BP_100000 took 12 milliseconds
+
+VC normalization of X at BP_100000 took 104 milliseconds
+KR normalization of X at BP_100000 took 344 milliseconds
+
+VC normalization of Y at BP_100000 took 0 milliseconds
+KR normalization of Y at BP_100000 took 19 milliseconds
+
+VC normalization of MT at BP_100000 took 0 milliseconds
+KR normalization of MT at BP_100000 took 0 milliseconds
+
+Calculating norms for zoom BP_50000
+VC normalization of 1 at BP_50000 took 401 milliseconds
+KR normalization of 1 at BP_50000 took 1908 milliseconds
+
+VC normalization of 2 at BP_50000 took 563 milliseconds
+KR normalization of 2 at BP_50000 took 2715 milliseconds
+
+VC normalization of 3 at BP_50000 took 357 milliseconds
+KR normalization of 3 at BP_50000 took 993 milliseconds
+
+VC normalization of 4 at BP_50000 took 293 milliseconds
+KR normalization of 4 at BP_50000 took 549 milliseconds
+
+VC normalization of 5 at BP_50000 took 360 milliseconds
+KR normalization of 5 at BP_50000 took 912 milliseconds
+
+VC normalization of 6 at BP_50000 took 272 milliseconds
+KR normalization of 6 at BP_50000 took 846 milliseconds
+
+VC normalization of 7 at BP_50000 took 233 milliseconds
+KR normalization of 7 at BP_50000 took 701 milliseconds
+
+VC normalization of 8 at BP_50000 took 220 milliseconds
+KR normalization of 8 at BP_50000 took 640 milliseconds
+
+VC normalization of 9 at BP_50000 took 138 milliseconds
+KR normalization of 9 at BP_50000 took 1045 milliseconds
+
+VC normalization of 10 at BP_50000 took 204 milliseconds
+KR normalization of 10 at BP_50000 took 624 milliseconds
+
+VC normalization of 11 at BP_50000 took 209 milliseconds
+KR normalization of 11 at BP_50000 took 1066 milliseconds
+
+VC normalization of 12 at BP_50000 took 179 milliseconds
+KR normalization of 12 at BP_50000 took 542 milliseconds
+
+VC normalization of 13 at BP_50000 took 113 milliseconds
+KR normalization of 13 at BP_50000 took 200 milliseconds
+
+VC normalization of 14 at BP_50000 took 106 milliseconds
+KR normalization of 14 at BP_50000 took 193 milliseconds
+
+VC normalization of 15 at BP_50000 took 89 milliseconds
+KR normalization of 15 at BP_50000 took 260 milliseconds
+
+VC normalization of 16 at BP_50000 took 82 milliseconds
+KR normalization of 16 at BP_50000 took 237 milliseconds
+
+VC normalization of 17 at BP_50000 took 89 milliseconds
+KR normalization of 17 at BP_50000 took 244 milliseconds
+
+VC normalization of 18 at BP_50000 took 88 milliseconds
+KR normalization of 18 at BP_50000 took 153 milliseconds
+
+VC normalization of 19 at BP_50000 took 55 milliseconds
+KR normalization of 19 at BP_50000 took 84 milliseconds
+
+VC normalization of 20 at BP_50000 took 55 milliseconds
+KR normalization of 20 at BP_50000 took 99 milliseconds
+
+VC normalization of 21 at BP_50000 took 21 milliseconds
+KR normalization of 21 at BP_50000 took 57 milliseconds
+
+VC normalization of 22 at BP_50000 took 21 milliseconds
+KR normalization of 22 at BP_50000 took 36 milliseconds
+
+VC normalization of X at BP_50000 took 244 milliseconds
+KR normalization of X at BP_50000 took 1674 milliseconds
+
+VC normalization of Y at BP_50000 took 0 milliseconds
+KR normalization of Y at BP_50000 took 36 milliseconds
+
+VC normalization of MT at BP_50000 took 0 milliseconds
+KR normalization of MT at BP_50000 took 0 milliseconds
+
+Calculating norms for zoom BP_25000
+VC normalization of 1 at BP_25000 took 668 milliseconds
+KR normalization of 1 at BP_25000 took 5447 milliseconds
+
+VC normalization of 2 at BP_25000 took 738 milliseconds
+KR normalization of 2 at BP_25000 took 5646 milliseconds
+
+VC normalization of 3 at BP_25000 took 568 milliseconds
+KR normalization of 3 at BP_25000 took 1580 milliseconds
+
+VC normalization of 4 at BP_25000 took 501 milliseconds
+KR normalization of 4 at BP_25000 took 2822 milliseconds
+
+VC normalization of 5 at BP_25000 took 588 milliseconds
+KR normalization of 5 at BP_25000 took 3364 milliseconds
+
+VC normalization of 6 at BP_25000 took 567 milliseconds
+KR normalization of 6 at BP_25000 took 2617 milliseconds
+
+VC normalization of 7 at BP_25000 took 407 milliseconds
+KR normalization of 7 at BP_25000 took 1271 milliseconds
+
+VC normalization of 8 at BP_25000 took 394 milliseconds
+KR normalization of 8 at BP_25000 took 2071 milliseconds
+
+VC normalization of 9 at BP_25000 took 312 milliseconds
+KR normalization of 9 at BP_25000 took 2367 milliseconds
+
+VC normalization of 10 at BP_25000 took 344 milliseconds
+KR normalization of 10 at BP_25000 took 4327 milliseconds
+
+VC normalization of 11 at BP_25000 took 351 milliseconds
+KR normalization of 11 at BP_25000 took 1839 milliseconds
+
+VC normalization of 12 at BP_25000 took 329 milliseconds
+KR normalization of 12 at BP_25000 took 2061 milliseconds
+
+VC normalization of 13 at BP_25000 took 211 milliseconds
+KR normalization of 13 at BP_25000 took 406 milliseconds
+
+VC normalization of 14 at BP_25000 took 191 milliseconds
+KR normalization of 14 at BP_25000 took 329 milliseconds
+
+VC normalization of 15 at BP_25000 took 166 milliseconds
+KR normalization of 15 at BP_25000 took 1188 milliseconds
+
+VC normalization of 16 at BP_25000 took 205 milliseconds
+KR normalization of 16 at BP_25000 took 499 milliseconds
+
+VC normalization of 17 at BP_25000 took 152 milliseconds
+KR normalization of 17 at BP_25000 took 460 milliseconds
+
+VC normalization of 18 at BP_25000 took 169 milliseconds
+KR normalization of 18 at BP_25000 took 281 milliseconds
+
+VC normalization of 19 at BP_25000 took 134 milliseconds
+KR normalization of 19 at BP_25000 took 316 milliseconds
+
+VC normalization of 20 at BP_25000 took 123 milliseconds
+KR normalization of 20 at BP_25000 took 333 milliseconds
+
+VC normalization of 21 at BP_25000 took 48 milliseconds
+KR normalization of 21 at BP_25000 took 145 milliseconds
+
+VC normalization of 22 at BP_25000 took 52 milliseconds
+KR normalization of 22 at BP_25000 took 156 milliseconds
+
+VC normalization of X at BP_25000 took 531 milliseconds
+KR normalization of X at BP_25000 took 3190 milliseconds
+
+VC normalization of Y at BP_25000 took 0 milliseconds
+KR normalization of Y at BP_25000 took 13 milliseconds
+
+VC normalization of MT at BP_25000 took 0 milliseconds
+KR normalization of MT at BP_25000 took 0 milliseconds
+
+Calculating norms for zoom BP_10000
+VC normalization of 1 at BP_10000 took 1056 milliseconds
+KR normalization of 1 at BP_10000 took 10978 milliseconds
+
+VC normalization of 2 at BP_10000 took 1379 milliseconds
+KR normalization of 2 at BP_10000 took 10188 milliseconds
+
+VC normalization of 3 at BP_10000 took 898 milliseconds
+KR normalization of 3 at BP_10000 took 5170 milliseconds
+
+VC normalization of 4 at BP_10000 took 763 milliseconds
+KR normalization of 4 at BP_10000 took 5622 milliseconds
+
+VC normalization of 5 at BP_10000 took 945 milliseconds
+KR normalization of 5 at BP_10000 took 6936 milliseconds
+
+VC normalization of 6 at BP_10000 took 724 milliseconds
+KR normalization of 6 at BP_10000 took 5425 milliseconds
+
+VC normalization of 7 at BP_10000 took 652 milliseconds
+KR normalization of 7 at BP_10000 took 5173 milliseconds
+
+VC normalization of 8 at BP_10000 took 601 milliseconds
+KR normalization of 8 at BP_10000 took 4892 milliseconds
+
+VC normalization of 9 at BP_10000 took 421 milliseconds
+KR normalization of 9 at BP_10000 took 9507 milliseconds
+
+VC normalization of 10 at BP_10000 took 714 milliseconds
+KR normalization of 10 at BP_10000 took 4807 milliseconds
+
+VC normalization of 11 at BP_10000 took 724 milliseconds
+KR normalization of 11 at BP_10000 took 3476 milliseconds
+
+VC normalization of 12 at BP_10000 took 550 milliseconds
+KR normalization of 12 at BP_10000 took 4078 milliseconds
+
+VC normalization of 13 at BP_10000 took 430 milliseconds
+KR normalization of 13 at BP_10000 took 966 milliseconds
+
+VC normalization of 14 at BP_10000 took 330 milliseconds
+KR normalization of 14 at BP_10000 took 945 milliseconds
+
+VC normalization of 15 at BP_10000 took 296 milliseconds
+KR normalization of 15 at BP_10000 took 2661 milliseconds
+
+VC normalization of 16 at BP_10000 took 361 milliseconds
+KR normalization of 16 at BP_10000 took 2406 milliseconds
+
+VC normalization of 17 at BP_10000 took 288 milliseconds
+KR normalization of 17 at BP_10000 took 902 milliseconds
+
+VC normalization of 18 at BP_10000 took 358 milliseconds
+KR normalization of 18 at BP_10000 took 456 milliseconds
+
+VC normalization of 19 at BP_10000 took 198 milliseconds
+KR normalization of 19 at BP_10000 took 1235 milliseconds
+
+VC normalization of 20 at BP_10000 took 224 milliseconds
+KR normalization of 20 at BP_10000 took 1299 milliseconds
+
+VC normalization of 21 at BP_10000 took 101 milliseconds
+KR normalization of 21 at BP_10000 took 753 milliseconds
+
+VC normalization of 22 at BP_10000 took 106 milliseconds
+KR normalization of 22 at BP_10000 took 641 milliseconds
+
+VC normalization of X at BP_10000 took 832 milliseconds
+KR normalization of X at BP_10000 took 5439 milliseconds
+
+VC normalization of Y at BP_10000 took 1 milliseconds
+KR normalization of Y at BP_10000 took 7 milliseconds
+
+VC normalization of MT at BP_10000 took 0 milliseconds
+KR normalization of MT at BP_10000 took 0 milliseconds
+
+Calculating norms for zoom BP_5000
+VC normalization of 1 at BP_5000 took 1798 milliseconds
+KR normalization of 1 at BP_5000 took 29756 milliseconds
+
+VC normalization of 2 at BP_5000 took 1540 milliseconds
+KR normalization of 2 at BP_5000 took 14790 milliseconds
+
+VC normalization of 3 at BP_5000 took 1501 milliseconds
+KR normalization of 3 at BP_5000 took 9003 milliseconds
+
+VC normalization of 4 at BP_5000 took 1048 milliseconds
+KR normalization of 4 at BP_5000 took 7775 milliseconds
+
+VC normalization of 5 at BP_5000 took 1302 milliseconds
+KR normalization of 5 at BP_5000 took 9808 milliseconds
+
+VC normalization of 6 at BP_5000 took 1237 milliseconds
+KR normalization of 6 at BP_5000 took 7614 milliseconds
+
+VC normalization of 7 at BP_5000 took 1093 milliseconds
+KR normalization of 7 at BP_5000 took 23949 milliseconds
+
+VC normalization of 8 at BP_5000 took 1056 milliseconds
+KR normalization of 8 at BP_5000 took 6877 milliseconds
+
+VC normalization of 9 at BP_5000 took 743 milliseconds
+KR normalization of 9 at BP_5000 took 14657 milliseconds
+
+VC normalization of 10 at BP_5000 took 785 milliseconds
+KR normalization of 10 at BP_5000 took 7910 milliseconds
+
+VC normalization of 11 at BP_5000 took 817 milliseconds
+KR normalization of 11 at BP_5000 took 7389 milliseconds
+
+VC normalization of 12 at BP_5000 took 763 milliseconds
+KR normalization of 12 at BP_5000 took 6143 milliseconds
+
+VC normalization of 13 at BP_5000 took 472 milliseconds
+KR normalization of 13 at BP_5000 took 2989 milliseconds
+
+VC normalization of 14 at BP_5000 took 466 milliseconds
+KR normalization of 14 at BP_5000 took 3316 milliseconds
+
+VC normalization of 15 at BP_5000 took 434 milliseconds
+KR normalization of 15 at BP_5000 took 4682 milliseconds
+
+VC normalization of 16 at BP_5000 took 439 milliseconds
+KR normalization of 16 at BP_5000 took 4385 milliseconds
+
+VC normalization of 17 at BP_5000 took 408 milliseconds
+KR normalization of 17 at BP_5000 took 3336 milliseconds
+
+VC normalization of 18 at BP_5000 took 402 milliseconds
+KR normalization of 18 at BP_5000 took 650 milliseconds
+
+VC normalization of 19 at BP_5000 took 305 milliseconds
+KR normalization of 19 at BP_5000 took 2423 milliseconds
+
+VC normalization of 20 at BP_5000 took 420 milliseconds
+KR normalization of 20 at BP_5000 took 2256 milliseconds
+
+VC normalization of 21 at BP_5000 took 146 milliseconds
+KR normalization of 21 at BP_5000 took 1402 milliseconds
+
+VC normalization of 22 at BP_5000 took 168 milliseconds
+KR normalization of 22 at BP_5000 took 1539 milliseconds
+
+VC normalization of X at BP_5000 took 1085 milliseconds
+KR normalization of X at BP_5000 took 8820 milliseconds
+
+VC normalization of Y at BP_5000 took 1 milliseconds
+KR normalization of Y at BP_5000 took 12 milliseconds
+
+VC normalization of MT at BP_5000 took 0 milliseconds
+KR normalization of MT at BP_5000 took 0 milliseconds
+
+Writing expected
+Writing norms
+Finished writing norms
+
+real	67m40.786s
+user	85m12.185s
+sys	1m15.234s
+Querying: 256x256 / 2048x2048 / slices / single resolution no norm
+HiC file version: 8
+Average time to query 256x256: 2 milliseconds
+Average time to query 2048x2048: 2 milliseconds
+Average time to query 1000 rows: 6 milliseconds
+Average time to query 1000 columns: 4 milliseconds
+Average time to query 1000 diagonal entries: 3 milliseconds
+Querying: 256x256 / 2048x2048 / slices / single resolution balanced norm
+HiC file version: 8
+Average time to query 256x256: 3 milliseconds
+Average time to query 2048x2048: 3 milliseconds
+Average time to query 1000 rows: 7 milliseconds
+Average time to query 1000 columns: 5 milliseconds
+Average time to query 1000 diagonal entries: 9 milliseconds
+Querying: 256x256 / 2048x2048 / slices / multiple resolution no norm
+HiC file version: 8
+Average time to query 256x256: 12 milliseconds
+Average time to query 2048x2048: 62 milliseconds
+Average time to query 1000 rows: 2 milliseconds
+Average time to query 1000 columns: 2 milliseconds
+Average time to query 1000 diagonal entries: 24 milliseconds
+Querying: 256x256 / 2048x2048 / slices / multiple resolution balanced norm
+HiC file version: 8
+Average time to query 256x256: 17 milliseconds
+Average time to query 2048x2048: 105 milliseconds
+Average time to query 1000 rows: 3 milliseconds
+Average time to query 1000 columns: 4 milliseconds
+Average time to query 1000 diagonal entries: 21 milliseconds
+Query without loading index 2048x2048....ten times
+
+real	0m0.466s
+user	0m0.371s
+sys	0m0.025s
+
+real	0m0.336s
+user	0m0.303s
+sys	0m0.021s
+
+real	0m0.324s
+user	0m0.291s
+sys	0m0.022s
+
+real	0m0.290s
+user	0m0.263s
+sys	0m0.018s
+
+real	0m0.280s
+user	0m0.249s
+sys	0m0.018s
+
+real	0m0.315s
+user	0m0.284s
+sys	0m0.020s
+
+real	0m0.352s
+user	0m0.322s
+sys	0m0.021s
+
+real	0m0.327s
+user	0m0.299s
+sys	0m0.020s
+
+real	0m0.240s
+user	0m0.216s
+sys	0m0.016s
+
+real	0m0.305s
+user	0m0.270s
+sys	0m0.020s
+Create index for binned data
+Not including fragment map
+Start preprocess
+Writing header
+Writing body
+..
+Writing footer
+
+Finished preprocess
+
+Calculating contact matrices took: 126158 milliseconds
+HiC file version: 8
+INFO [2016-08-05 20:31:47,065]  [DatasetReaderV2.java:449] [main]  No normalization vectors
+
+Calculating norms for zoom BP_5000
+VC normalization of X at BP_5000 took 9492 milliseconds
+KR normalization of X at BP_5000 took 67541 milliseconds
+
+Writing expected
+Writing norms
+Finished writing norms
+
+real	3m28.725s
+user	5m59.281s
+sys	0m4.329s
+Querying: 256x256 / 2048x2048 / slices / no norm
+HiC file version: 8
+Average time to query 256x256: 28 milliseconds
+Average time to query 2048x2048: 198 milliseconds
+Query 31055 rows at 5000BP on chrX: 91 millseconds
+Query 31055 rows at 5000BP on chrX: 29 millseconds
+Query 31055 rows at 5000BP on chrX: 27 millseconds
+Query 31055 rows at 5000BP on chrX: 60 millseconds
+Query 31055 rows at 5000BP on chrX: 39 millseconds
+Query 31055 rows at 5000BP on chrX: 65 millseconds
+Query 31055 rows at 5000BP on chrX: 61 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 69 millseconds
+Query 31055 rows at 5000BP on chrX: 73 millseconds
+Query 31055 rows at 5000BP on chrX: 61 millseconds
+Query 31055 rows at 5000BP on chrX: 26 millseconds
+Query 31055 rows at 5000BP on chrX: 61 millseconds
+Query 31055 rows at 5000BP on chrX: 79 millseconds
+Query 31055 rows at 5000BP on chrX: 68 millseconds
+Query 31055 rows at 5000BP on chrX: 57 millseconds
+Query 31055 rows at 5000BP on chrX: 22 millseconds
+Query 31055 rows at 5000BP on chrX: 24 millseconds
+Query 31055 rows at 5000BP on chrX: 77 millseconds
+Query 31055 rows at 5000BP on chrX: 70 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 82 millseconds
+Query 31055 rows at 5000BP on chrX: 69 millseconds
+Query 31055 rows at 5000BP on chrX: 76 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 66 millseconds
+Query 31055 rows at 5000BP on chrX: 50 millseconds
+Query 31055 rows at 5000BP on chrX: 25 millseconds
+Query 31055 rows at 5000BP on chrX: 50 millseconds
+Query 31055 rows at 5000BP on chrX: 57 millseconds
+Query 31055 rows at 5000BP on chrX: 72 millseconds
+Query 31055 rows at 5000BP on chrX: 73 millseconds
+Query 31055 rows at 5000BP on chrX: 83 millseconds
+Query 31055 rows at 5000BP on chrX: 74 millseconds
+Query 31055 rows at 5000BP on chrX: 87 millseconds
+Query 31055 rows at 5000BP on chrX: 81 millseconds
+Query 31055 rows at 5000BP on chrX: 93 millseconds
+Query 31055 rows at 5000BP on chrX: 91 millseconds
+Query 31055 rows at 5000BP on chrX: 95 millseconds
+Query 31055 rows at 5000BP on chrX: 70 millseconds
+Query 31055 rows at 5000BP on chrX: 93 millseconds
+Query 31055 rows at 5000BP on chrX: 70 millseconds
+Query 31055 rows at 5000BP on chrX: 68 millseconds
+Query 31055 rows at 5000BP on chrX: 62 millseconds
+Query 31055 rows at 5000BP on chrX: 39 millseconds
+Query 31055 rows at 5000BP on chrX: 60 millseconds
+Query 31055 rows at 5000BP on chrX: 67 millseconds
+Query 31055 rows at 5000BP on chrX: 57 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 20 millseconds
+Query 31055 rows at 5000BP on chrX: 67 millseconds
+Query 31055 rows at 5000BP on chrX: 80 millseconds
+Query 31055 rows at 5000BP on chrX: 77 millseconds
+Query 31055 rows at 5000BP on chrX: 76 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 77 millseconds
+Query 31055 rows at 5000BP on chrX: 88 millseconds
+Query 31055 rows at 5000BP on chrX: 89 millseconds
+Query 31055 rows at 5000BP on chrX: 75 millseconds
+Query 31055 rows at 5000BP on chrX: 89 millseconds
+Query 31055 rows at 5000BP on chrX: 72 millseconds
+Query 31055 rows at 5000BP on chrX: 71 millseconds
+Query 31055 rows at 5000BP on chrX: 81 millseconds
+Query 31055 rows at 5000BP on chrX: 58 millseconds
+Query 31055 rows at 5000BP on chrX: 61 millseconds
+Query 31055 rows at 5000BP on chrX: 61 millseconds
+Query 31055 rows at 5000BP on chrX: 66 millseconds
+Query 31055 rows at 5000BP on chrX: 83 millseconds
+Query 31055 rows at 5000BP on chrX: 61 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 67 millseconds
+Query 31055 rows at 5000BP on chrX: 68 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 65 millseconds
+Query 31055 rows at 5000BP on chrX: 73 millseconds
+Query 31055 rows at 5000BP on chrX: 66 millseconds
+Query 31055 rows at 5000BP on chrX: 64 millseconds
+Query 31055 rows at 5000BP on chrX: 86 millseconds
+Query 31055 rows at 5000BP on chrX: 67 millseconds
+Query 31055 rows at 5000BP on chrX: 64 millseconds
+Query 31055 rows at 5000BP on chrX: 59 millseconds
+Query 31055 rows at 5000BP on chrX: 65 millseconds
+Query 31055 rows at 5000BP on chrX: 69 millseconds
+Query 31055 rows at 5000BP on chrX: 57 millseconds
+Query 31055 rows at 5000BP on chrX: 61 millseconds
+Query 31055 rows at 5000BP on chrX: 71 millseconds
+Query 31055 rows at 5000BP on chrX: 65 millseconds
+Query 31055 rows at 5000BP on chrX: 58 millseconds
+Query 31055 rows at 5000BP on chrX: 67 millseconds
+Query 31055 rows at 5000BP on chrX: 57 millseconds
+Query 31055 rows at 5000BP on chrX: 60 millseconds
+Query 31055 rows at 5000BP on chrX: 63 millseconds
+Query 31055 rows at 5000BP on chrX: 57 millseconds
+Query 31055 rows at 5000BP on chrX: 78 millseconds
+Query 31055 rows at 5000BP on chrX: 47 millseconds
+Query 31055 rows at 5000BP on chrX: 50 millseconds
+Query 31055 rows at 5000BP on chrX: 67 millseconds
+Query 31055 rows at 5000BP on chrX: 73 millseconds
+Query 31055 rows at 5000BP on chrX: 67 millseconds
+Query 31055 rows at 5000BP on chrX: 57 millseconds
+Average time to query 1000 rows: 2 milliseconds
+Query 31055 columns at 5000BP on chrX: 38 millseconds
+Query 31055 columns at 5000BP on chrX: 65 millseconds
+Query 31055 columns at 5000BP on chrX: 68 millseconds
+Query 31055 columns at 5000BP on chrX: 24 millseconds
+Query 31055 columns at 5000BP on chrX: 64 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 67 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 67 millseconds
+Query 31055 columns at 5000BP on chrX: 63 millseconds
+Query 31055 columns at 5000BP on chrX: 56 millseconds
+Query 31055 columns at 5000BP on chrX: 43 millseconds
+Query 31055 columns at 5000BP on chrX: 70 millseconds
+Query 31055 columns at 5000BP on chrX: 68 millseconds
+Query 31055 columns at 5000BP on chrX: 55 millseconds
+Query 31055 columns at 5000BP on chrX: 55 millseconds
+Query 31055 columns at 5000BP on chrX: 57 millseconds
+Query 31055 columns at 5000BP on chrX: 60 millseconds
+Query 31055 columns at 5000BP on chrX: 58 millseconds
+Query 31055 columns at 5000BP on chrX: 82 millseconds
+Query 31055 columns at 5000BP on chrX: 60 millseconds
+Query 31055 columns at 5000BP on chrX: 73 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 61 millseconds
+Query 31055 columns at 5000BP on chrX: 57 millseconds
+Query 31055 columns at 5000BP on chrX: 73 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 64 millseconds
+Query 31055 columns at 5000BP on chrX: 62 millseconds
+Query 31055 columns at 5000BP on chrX: 66 millseconds
+Query 31055 columns at 5000BP on chrX: 61 millseconds
+Query 31055 columns at 5000BP on chrX: 67 millseconds
+Query 31055 columns at 5000BP on chrX: 60 millseconds
+Query 31055 columns at 5000BP on chrX: 73 millseconds
+Query 31055 columns at 5000BP on chrX: 60 millseconds
+Query 31055 columns at 5000BP on chrX: 63 millseconds
+Query 31055 columns at 5000BP on chrX: 50 millseconds
+Query 31055 columns at 5000BP on chrX: 58 millseconds
+Query 31055 columns at 5000BP on chrX: 72 millseconds
+Query 31055 columns at 5000BP on chrX: 23 millseconds
+Query 31055 columns at 5000BP on chrX: 60 millseconds
+Query 31055 columns at 5000BP on chrX: 66 millseconds
+Query 31055 columns at 5000BP on chrX: 69 millseconds
+Query 31055 columns at 5000BP on chrX: 56 millseconds
+Query 31055 columns at 5000BP on chrX: 61 millseconds
+Query 31055 columns at 5000BP on chrX: 51 millseconds
+Query 31055 columns at 5000BP on chrX: 63 millseconds
+Query 31055 columns at 5000BP on chrX: 48 millseconds
+Query 31055 columns at 5000BP on chrX: 71 millseconds
+Query 31055 columns at 5000BP on chrX: 68 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 69 millseconds
+Query 31055 columns at 5000BP on chrX: 67 millseconds
+Query 31055 columns at 5000BP on chrX: 75 millseconds
+Query 31055 columns at 5000BP on chrX: 67 millseconds
+Query 31055 columns at 5000BP on chrX: 55 millseconds
+Query 31055 columns at 5000BP on chrX: 70 millseconds
+Query 31055 columns at 5000BP on chrX: 80 millseconds
+Query 31055 columns at 5000BP on chrX: 89 millseconds
+Query 31055 columns at 5000BP on chrX: 81 millseconds
+Query 31055 columns at 5000BP on chrX: 61 millseconds
+Query 31055 columns at 5000BP on chrX: 57 millseconds
+Query 31055 columns at 5000BP on chrX: 65 millseconds
+Query 31055 columns at 5000BP on chrX: 69 millseconds
+Query 31055 columns at 5000BP on chrX: 52 millseconds
+Query 31055 columns at 5000BP on chrX: 69 millseconds
+Query 31055 columns at 5000BP on chrX: 68 millseconds
+Query 31055 columns at 5000BP on chrX: 66 millseconds
+Query 31055 columns at 5000BP on chrX: 57 millseconds
+Query 31055 columns at 5000BP on chrX: 56 millseconds
+Query 31055 columns at 5000BP on chrX: 62 millseconds
+Query 31055 columns at 5000BP on chrX: 63 millseconds
+Query 31055 columns at 5000BP on chrX: 79 millseconds
+Query 31055 columns at 5000BP on chrX: 73 millseconds
+Query 31055 columns at 5000BP on chrX: 79 millseconds
+Query 31055 columns at 5000BP on chrX: 70 millseconds
+Query 31055 columns at 5000BP on chrX: 70 millseconds
+Query 31055 columns at 5000BP on chrX: 27 millseconds
+Query 31055 columns at 5000BP on chrX: 64 millseconds
+Query 31055 columns at 5000BP on chrX: 71 millseconds
+Query 31055 columns at 5000BP on chrX: 71 millseconds
+Query 31055 columns at 5000BP on chrX: 23 millseconds
+Query 31055 columns at 5000BP on chrX: 70 millseconds
+Query 31055 columns at 5000BP on chrX: 68 millseconds
+Query 31055 columns at 5000BP on chrX: 84 millseconds
+Query 31055 columns at 5000BP on chrX: 62 millseconds
+Query 31055 columns at 5000BP on chrX: 91 millseconds
+Query 31055 columns at 5000BP on chrX: 18 millseconds
+Query 31055 columns at 5000BP on chrX: 72 millseconds
+Query 31055 columns at 5000BP on chrX: 67 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 55 millseconds
+Query 31055 columns at 5000BP on chrX: 60 millseconds
+Query 31055 columns at 5000BP on chrX: 70 millseconds
+Query 31055 columns at 5000BP on chrX: 73 millseconds
+Query 31055 columns at 5000BP on chrX: 59 millseconds
+Query 31055 columns at 5000BP on chrX: 74 millseconds
+Query 31055 columns at 5000BP on chrX: 63 millseconds
+Query 31055 columns at 5000BP on chrX: 74 millseconds
+Average time to query 1000 columns: 2 milliseconds
+Query 31055-length diagonal at 5000BP on chrX: 1131 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1285 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1214 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1109 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1119 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1090 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1059 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1068 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1244 millseconds
+Query 31055-length diagonal at 5000BP on chrX: 1137 millseconds
+Average time to query 1000 diagonal entries: 36 milliseconds
+Querying: 256x256 / 2048x2048 / slices / balanced norm
+HiC file version: 8
+Average time to query 256x256: 30 milliseconds
+Average time to query 2048x2048: 258 milliseconds
+Average time to query 1000 rows: 2 milliseconds
+Average time to query 1000 columns: 2 milliseconds
+Average time to query 1000 diagonal entries: 47 milliseconds
+Binary index to text
+HiC file version: 8
+
+real	0m10.515s
+user	0m9.167s
+sys	0m0.965s
