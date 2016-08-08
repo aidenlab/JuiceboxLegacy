@@ -286,7 +286,7 @@ public class Dump extends JuiceboxCLT {
         Matrix matrix = dataset.getMatrix(chr1, chr2);
         if (matrix == null) {
             System.err.println("No reads in " + chr1 + " " + chr2);
-            System.exit(12);
+            return;
         }
 
         if (chr2.getIndex() < chr1.getIndex()) {
@@ -323,6 +323,38 @@ public class Dump extends JuiceboxCLT {
             if (bos != null) bos.close();
         }
     }
+
+    static private float[] getSlice(Dataset dataset, Chromosome chr1, Chromosome chr2, NormalizationType norm,
+                                   HiCZoom zoom) throws IOException {
+        Matrix matrix = dataset.getMatrix(chr1, chr2);
+        if (matrix == null) {
+            System.err.println("No reads in " + chr1 + " " + chr2);
+            return null;
+        }
+
+        if (chr2.getIndex() < chr1.getIndex()) {
+            regionIndices = new int[]{regionIndices[2], regionIndices[3], regionIndices[0], regionIndices[1]};
+        }
+
+        MatrixZoomData zd = matrix.getZoomData(zoom);
+        if (zd == null) {
+
+            System.err.println("Unknown resolution: " + zoom);
+            System.err.println("This data set has the following bin sizes (in bp): ");
+            for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.BP); zoomIdx++) {
+                System.err.print(dataset.getZoom(HiC.Unit.BP, zoomIdx).getBinSize() + " ");
+            }
+            System.err.println("\nand the following bin sizes (in frag): ");
+            for (int zoomIdx = 0; zoomIdx < dataset.getNumberZooms(HiC.Unit.FRAG); zoomIdx++) {
+                System.err.print(dataset.getZoom(HiC.Unit.FRAG, zoomIdx).getBinSize() + " ");
+            }
+            return null;
+        }
+
+        return zd.getSlice(norm, useRegionIndices, regionIndices);
+
+    }
+
 
     @Override
     public void readArguments(String[] args, CmdLineParser parser) {
@@ -420,9 +452,43 @@ public class Dump extends JuiceboxCLT {
     }
 
     /**
+     * Added for benchmark
+     */
+    public void setQuery(String chr1, String chr2, int binSize) {
+        this.chr1 = chr1;
+        this.chr2 = chr2;
+        this.binSize = binSize;
+        extractChromosomeRegionIndices();
+    }
+
+    public float[] getSlice(String c1, String c2, int binSize) {
+
+        setQuery(c1,c2,binSize);
+        try {
+            return getSlice(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, new HiCZoom(unit, binSize));
+        }
+        catch (IOException error) {
+            error.printStackTrace();
+            return null;
+        }
+    }
+
+    public Map<String, Chromosome> getChromosomeMap() { return this.chromosomeMap;}
+
+    public int[] getBpBinSizes() {
+        int[] bpBinSizes = new int[dataset.getNumberZooms(HiC.Unit.BP)];
+        for (int zoomIdx = 0; zoomIdx < bpBinSizes.length; zoomIdx++) {
+            bpBinSizes[zoomIdx] = dataset.getZoom(HiC.Unit.BP, zoomIdx).getBinSize();
+        }
+        return bpBinSizes;
+    }
+
+
+    /**
      * Added so that subregions could be dumped without dumping the full chromosome
      */
     private void extractChromosomeRegionIndices() {
+        useRegionIndices = false;
         if (chr1.contains(":")) {
             String[] regionComponents = chr1.split(":");
             if (regionComponents.length != 3) {
@@ -483,15 +549,15 @@ public class Dump extends JuiceboxCLT {
             try {
                 dumpMatrix(dataset, chromosomeMap.get(chr1), chromosomeMap.get(chr2), norm, zoom, matrixType, ofile);
             } catch (Exception e) {
-                System.err.println("Unable to dump matrix");
-                e.printStackTrace();
+                System.err.println("Unable to dump matrix " + e.getMessage());
+                //e.printStackTrace();
             }
         } else if (MatrixType.isDumpVectorType(matrixType)) {
             try {
                 dumpGeneralVector(dataset, chr1, chromosomeMap.get(chr1), norm, zoom, matrixType, ofile, binSize, unit);
             } catch (Exception e) {
-                System.err.println("Unable to dump vector");
-                e.printStackTrace();
+                System.err.println("Unable to dump vector " + e.getMessage());
+                //e.printStackTrace();
             }
         }
 

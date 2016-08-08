@@ -26,6 +26,7 @@ package juicebox.tools.clt;
 
 import juicebox.tools.clt.juicer.*;
 import juicebox.tools.clt.old.*;
+import juicebox.tools.utils.Benchmark;
 
 /**
  * Factory for command line tools to call different functions
@@ -106,6 +107,8 @@ public class CLTFactory {
             return new HiCCUPSDiff();
         } else if (cmd.equals("ab_compdiff")) {
             return new ABCompartmentsDiff();
+        } else if (cmd.equals("benchmark")) {
+            return new Benchmark();
         }
 
         return null;

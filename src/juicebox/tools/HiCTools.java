@@ -41,7 +41,7 @@ import java.io.IOException;
  * @author Muhammad Shamim
  * @date 1/20/2015
  */
-class HiCTools {
+public class HiCTools {
 
     public static void main(String[] argv) throws IOException, CmdLineParser.UnknownOptionException, CmdLineParser.IllegalOptionValueException {
         Globals.setHeadless(true);
@@ -59,6 +59,12 @@ class HiCTools {
         }
 
         parser.parse(argv);
+        if (CommandLineParserForJuicer.isJuicerCommand(cmdName)) {
+            HiCGlobals.printVerboseComments = ((CommandLineParserForJuicer)parser).getVerboseOption();
+        }
+        else {
+            HiCGlobals.printVerboseComments = ((CommandLineParser)parser).getVerboseOption();
+        }
         String[] args = parser.getRemainingArgs();
 
         JuiceboxCLT instanceOfCLT;

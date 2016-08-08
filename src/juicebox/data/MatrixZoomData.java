@@ -726,6 +726,80 @@ public class MatrixZoomData {
         }
     }
 
+    public float[] getSlice(NormalizationType norm, boolean useRegionIndices, int[] regionIndices) throws IOException{
+        boolean isIntraChromosomal = chr1.getIndex() == chr2.getIndex();
+
+        // Get the block index keys, and sort
+        // if useRegionIndices is false, return diagonal
+        List<Integer> blocksToIterateOver;
+        if (useRegionIndices) {
+            blocksToIterateOver = getBlockNumbersForRegionFromGenomePosition(regionIndices);
+        } else {
+            blocksToIterateOver = reader.getBlockNumbers(this);
+            Collections.sort(blocksToIterateOver);
+        }
+
+        boolean sliceX = true;
+        if (regionIndices[0] == regionIndices[1]) {
+            sliceX = true;
+        }
+        else if (regionIndices[2] == regionIndices[3]) {
+            sliceX = false;
+        }
+        else if (useRegionIndices) {
+            System.err.println("Trying to get more than one dimensional slice");
+            return null;
+        }
+        float[] retValues;
+
+        // for diagonal, these will be the same
+        if (sliceX) {
+            retValues = new float[(regionIndices[3]-regionIndices[2])/zoom.getBinSize() + 1];
+        }
+        else {
+            retValues = new float[(regionIndices[1]-regionIndices[0])/zoom.getBinSize() + 1];
+        }
+
+
+        for (Integer blockNumber : blocksToIterateOver) {
+            Block b = reader.readNormalizedBlock(blockNumber, MatrixZoomData.this, norm);
+            if (b != null) {
+                for (ContactRecord rec : b.getContactRecords()) {
+                    float counts = rec.getCounts();
+                    int x = rec.getBinX();
+                    int y = rec.getBinY();
+                    int xActual = x * zoom.getBinSize();
+                    int yActual = y * zoom.getBinSize();
+
+                    if (!useRegionIndices) {
+                        if (x==y) {
+                            retValues[x] = counts;
+                        }
+                    }
+                    else {
+                        if (xActual >= regionIndices[0] && xActual <= regionIndices[1] &&
+                                yActual >= regionIndices[2] && yActual <= regionIndices[3]) {
+                            if (sliceX) {
+                                retValues[y] = counts;
+                            } else {
+                                retValues[x] = counts;
+                            }
+                        }
+                        if (isIntraChromosomal && yActual >= regionIndices[0] && yActual <= regionIndices[1] &&
+                                xActual >= regionIndices[2] && xActual <= regionIndices[3]) {
+                            if (sliceX) {
+                                retValues[x] = counts;
+                            } else {
+                                retValues[y] = counts;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return retValues;
+    }
+
     public void dump1DTrackFromCrossHairAsWig(PrintWriter printWriter, Chromosome chromosomeForPosition,
                                               int binStartPosition, boolean isIntraChromosomal, int[] regionBinIndices,
                                               NormalizationType norm, MatrixType matrixType,
