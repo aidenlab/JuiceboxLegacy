@@ -32,7 +32,7 @@ Past contributors include
 <a href="https://github.com/zgire">Zulkifl Gire</a> and
 <a href="https://github.com/mhoeger">Marie Hoeger</a>.
 
-Please see [the wiki](wiki) for extensive documentation.
+Please see [the wiki](https://github.com/theaidenlab/juicebox/wiki) for extensive documentation.
 
 ------------
 Distribution
