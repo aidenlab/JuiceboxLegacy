@@ -1137,8 +1137,8 @@ public class ResourceTree {
                         renderer.setText(resource.getText());
                         renderer.setSelected(resource.isSelected());
                         renderer.setEnabled(resource.isEnabled());
+			String hyperLink = resource.getResourceLocator().getFeatureInfoURL();
 
-                        String hyperLink = resource.getResourceLocator().getTrackInforURL();
                         if (hyperLink == null) {
                             renderer.showHyperLink(false);
                         } else {
