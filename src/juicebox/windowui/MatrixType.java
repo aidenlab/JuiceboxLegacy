@@ -36,7 +36,7 @@ public enum MatrixType {
     VS("Observed vs Control"),
     CONTROL("Control"),
     NORM("Norm"),
-    EIGENVECTOR("Eigenvector");
+      EIGENVECTOR("Eigenvector");
     private final String value;
 
     MatrixType(String value) {
@@ -110,7 +110,7 @@ public enum MatrixType {
      * @return true if the option only works for intrachromosomal maps
      */
     public static boolean isOnlyIntrachromosomalType(MatrixType option) {
-        return option == PEARSON || option == VS || option == DIFF; //|| option == OE
+        return isPearsonType(option) || option == VS || option == DIFF; //|| option == OE
     }
 
     /**
@@ -134,7 +134,15 @@ public enum MatrixType {
      * @return true if the option requires the expected vector
      */
     public static boolean isExpectedValueType(MatrixType option) {
-        return option == OE || option == PEARSON;
+        return option == OE || isPearsonType(option);
+    }
+
+    /**
+     * @param option
+     * @return true if the option uses pearson's
+     */
+    public static boolean isPearsonType(MatrixType option) {
+        return option == PEARSON;
     }
 
     /**
@@ -155,5 +163,9 @@ public enum MatrixType {
 
     public String toString() {
         return value;
+    }
+
+    public static boolean isVSTypeDisplay(MatrixType option) {
+        return option == MatrixType.VS;
     }
 }

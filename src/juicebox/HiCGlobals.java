@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2011-2016 Broad Institute, Aiden Lab
+ * Copyright (c) 2011-2017 Broad Institute, Aiden Lab
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ import java.util.List;
 
 /**
  * @author Muhammad Shamim
- * @date 11/25/14
+ * @since 11/25/14
  */
 public class HiCGlobals {
 
@@ -61,16 +61,15 @@ public class HiCGlobals {
 
     public static final MatrixType[] enabledMatrixTypesNoControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
             MatrixType.OE, MatrixType.PEARSON};
-    // Add MatrixType.DIFF below if you'd like to enable DIFF mode
     public static final MatrixType[] enabledMatrixTypesWithControl = new MatrixType[]{MatrixType.OBSERVED, MatrixType.EXPECTED,
-            MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO};
+            MatrixType.OE, MatrixType.PEARSON, MatrixType.CONTROL, MatrixType.VS, MatrixType.RATIO, MatrixType.DIFF};
     public static final String defaultPropertiesURL = "http://hicfiles.tc4ga.com/juicebox.properties";
-    public static final int MAX_PEARSON_ZOOM = 500000;
+    public static int MAX_PEARSON_ZOOM = 500000;
     // Juicebox version (for display purposes only)
-    private static final double versionNum = 1.5;
+    public static final String versionNum = "1.5.2";
     // Juicebox title
     // TODO decide on title displayed in Juicebox
-    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map: ";
+    public static final String juiceboxTitle = "[Juicebox " + versionNum + "] Hi-C Map ";
     // whether MatrixZoomData should cache or not
     public static boolean useCache = true;
     public static boolean guiIsCurrentlyActive = false;
