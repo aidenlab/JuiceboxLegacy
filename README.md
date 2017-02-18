@@ -19,17 +19,11 @@ Juicebox was created by
 
 Ongoing development work is carried out by
 <a href="https://github.com/nchernia">Neva C. Durand</a>,
-<a href="https://github.com/bluejay9676">Jay Ryu</a>,
 <a href="https://github.com/asddf123789">Fanny Huang</a>,
-<a href="https://github.com/mikeehman">Nam Hee Kim</a>,
 <a href="https://github.com/imachol">Ido Machol</a>,
-<a href="https://github.com/nguyenkvi">Vi Nguyen</a>,
 and <a href="https://github.com/sa501428">Muhammad Saad Shamim</a>.
 
-Past contributors include
-<a href="https://github.com/zgire">Zulkifl Gire</a> and
-<a href="https://github.com/mhoeger">Marie Hoeger</a>.
-
+Past contributors include <a href="https://github.com/zgire">Zulkifl Gire</a>, <a href="https://github.com/mhoeger">Marie Hoeger</a>, <a href="https://github.com/mikeehman">Nam Hee Kim</a>, <a href="https://github.com/nguyenkvi">Vi Nguyen</a>, and <a href="https://github.com/bluejay9676">Jay Ryu</a>.
 
 ------------
 Distribution
