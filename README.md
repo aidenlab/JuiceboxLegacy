@@ -1,4 +1,8 @@
 --------------
+**THIS IS THE OLD REPOSITORY - Go to https://github.com/theaidenlab/Juicebox for the main repo**
+--------------
+
+--------------
 About Juicebox
 --------------
 Juicebox is visualization software for Hi-C data.  In this distribution, we
